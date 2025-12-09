@@ -256,3 +256,54 @@ select * from products where productCode like '%$_20%' escape '$';
 select * from customers order by creditLimit desc limit 5;
 select * from customers ORDER BY customerName LIMIT 10, 10;
 SELECT 1 IS NULL,  0 IS NULL,  NULL IS NULL;
+
+
+-- CREATE TABLE employees_india (
+--     id INT PRIMARY KEY,
+--     name VARCHAR(50),
+--     dept VARCHAR(50)
+-- );
+
+-- INSERT INTO employees_india VALUES
+-- (1, 'Amit', 'IT'),
+-- (2, 'Ravi', 'HR'),
+-- (3, 'Neha', 'Finance'),
+-- (4, 'Sara', 'IT');
+
+-- CREATE TABLE employees_usa (
+--     id INT PRIMARY KEY,
+--     name VARCHAR(50),
+--     dept VARCHAR(50)
+-- );
+
+-- INSERT INTO employees_usa VALUES
+-- (3, 'Neha', 'Finance'),
+-- (4, 'Sara', 'IT'),
+-- (5, 'John', 'Marketing'),
+-- (6, 'Mike', 'IT');
+
+-- select * from employees_india;
+-- select * from employees_usa;
+
+-- select * from employees_india
+-- union
+-- select * from employees_usa;
+-- select * from employees_india
+-- union distinct
+-- select * from employees_usa;
+-- select * from employees_india
+-- union all
+-- select * from employees_usa;
+
+-- select *, 'Indian Employee' as 'Employee Origin' from employees_india
+-- union distinct
+-- select *, 'American Employee' as 'Employee Origin' from employees_usa where id not in (select distinct id from employees_india)
+-- order by name asc;
+
+-- except
+-- select e1.*, e2.* from employees_usa as e1 left join employees_india as e2 on e1.id = e2.id where e2.id is null;
+
+-- intersect
+-- select e1.* from employees_india as e1 inner join employees_usa as e2 on e1.id = e2.id;
+
+

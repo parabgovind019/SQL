@@ -194,3 +194,65 @@ select * from employees order by reportsTo asc;
 SELECT * FROM orders ORDER BY RAND() LIMIT 5;
 -- ordering by boolean expression
 SELECT * FROM employees ORDER BY (employeeNumber = 1056) DESC; -- only one true so it will come first as desc is used rest all false i.e 0 so will come below true i.e 1
+
+
+use classicmodels;
+select * from employees where jobTitle = 'Sales Rep'; -- note that match is case incensitive to make it case sensitive use binary() or collation;
+select * from employees where jobTitle = 'Sales Rep' and officeCode = 1;
+select * from employees where jobTitle = 'Sales Rep' or officeCode = 1 order by officeCode, jobTitle;
+select * from employees where officeCode between 1 and 3 order by officeCode;
+select * from employees where employeeNumber like '105_';
+select * from employees where lastName like '%son%';
+select * from employees where officeCode in (1,2,3) order by officeCode;
+select * from employees where reportsTo is null;
+select * from employees where jobTitle <> 'Sales Rep';
+select * from employees where officeCode >= 3 order by  officeCode;
+
+select 'Govind' = 'govind'; -- true
+select 'Govind' <> 'govind'; -- false
+select 'M' > 'Milk'; -- lexographical comparison just like dictionary (M, Ma, and so on)-- false
+select null = null; -- returns null not true uses boolean logic
+select null <> null; -- returns null not true uses boolean logic
+
+select distinct lastName from employees;
+select state from customers; -- contains multiple null values
+select distinct state from customers; -- contains only one null value as it uses set semantics not boolean logic
+select state, city from customers;
+select distinct state, city from customers;
+SELECT 1 AND 0, 0 AND 1, 0 AND 0, 0 AND NULL;
+SELECT 1 AND NULL, NULL AND NULL;
+select * from customers where country = 'USA' and state = 'CA' and creditLimit > 100000;
+SELECT 1 OR 1, 1 OR 0, 0 OR 1;
+SELECT 0 OR 0;
+SELECT 1 OR NULL, 0 OR NULL, NULL or NULL;
+SELECT 1 OR 0 AND 0; -- operator precedence
+SELECT (1 OR 0) AND 0; -- to change the order of evaluation use paranthesis
+select * from customers where (country = 'USA' or country = 'France') and creditLimit >= 100000;
+SELECT 1 IN (1,2,3);
+SELECT 4 IN (1,2,3);
+SELECT NULL IN (1,2,3);
+SELECT 0 IN (1 , 2, 3, NULL);
+SELECT NULL IN (1 , 2, 3, NULL); -- boolean logic and presence of null
+select * from offices where country in ('USA','FRANCE');
+SELECT 1 NOT IN (1,2,3);
+SELECT 0 NOT IN (1,2,3);
+SELECT NULL NOT IN (1,2,3);
+SELECT 1 NOT IN (Null,2,3);
+select * from offices where country not in ('USA','FRANCE');
+SELECT 15 BETWEEN 10 AND 20;
+SELECT 15 BETWEEN 20 AND 30;
+SELECT null BETWEEN 20 AND 30; -- null
+SELECT 15 BETWEEN 20 AND null; -- false
+SELECT 15 NOT BETWEEN 10 AND 20;
+SELECT 15 NOT BETWEEN 20 AND 30;
+select * from products where buyPrice between 100 and 150;
+select * from orders where requiredDate between CAST('2003-01-01' AS DATE) AND CAST('2003-01-31' AS DATE);
+select * from orders where requiredDate not between CAST('2003-01-01' AS DATE) AND CAST('2003-01-31' AS DATE);
+select * from employees where firstName like 'T_M';
+select * from employees where LastName not like 'm%'; -- note that pattern is not case sensitive
+select * from employees where LastName like binary('M%'); -- note that pattern is case sensitive
+select * from products where productCode like '%\_20%'; -- default escape character is backslash
+select * from products where productCode like '%$_20%' escape '$';
+select * from customers order by creditLimit desc limit 5;
+select * from customers ORDER BY customerName LIMIT 10, 10;
+SELECT 1 IS NULL,  0 IS NULL,  NULL IS NULL;

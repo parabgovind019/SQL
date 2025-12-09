@@ -307,3 +307,43 @@ SELECT 1 IS NULL,  0 IS NULL,  NULL IS NULL;
 -- select e1.* from employees_india as e1 inner join employees_usa as e2 on e1.id = e2.id;
 
 
+SELECT database();
+use classicmodels;
+select database();
+show databases;
+SHOW CHARACTER SET;
+-- CONVERT(expression USING character_set_name)
+-- CAST(string AS character_type CHARACTER SET character_set_name)
+SELECT CAST(_latin1'MySQL character set' AS CHAR CHARACTER SET utf8);
+SHOW COLLATION LIKE 'latin1%';
+/*
+CREATE DATABASE database_name
+CHARACTER SET character_set_name
+COLLATE collation_name;
+
+ALTER DATABASE database_name
+CHARACTER SET character_set_name
+COLLATE collation_name;
+*/
+/*
+CREATE TABLE table_name(
+   ...
+)
+CHARACTER SET character_set_name
+COLLATE collation_name;
+
+ALTER TABLE table_name(
+  ...
+)
+CHARACTER SET character_set_name
+COLLATE collation_name;
+*/
+/*
+column_name [CHAR | VARCHAR | TEXT] (length)
+CHARACTER SET character_set_name
+COLLATE collation_name
+*/
+show create database classicmodels;
+-- DROP DATABASE [IF EXISTS] database_name;
+
+

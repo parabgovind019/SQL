@@ -347,3 +347,68 @@ show create database classicmodels;
 -- DROP DATABASE [IF EXISTS] database_name;
 
 
+/*
+use classicmodels;
+select * from customers;
+select * from orders;
+select c.customerName, count(*) from orders o inner join customers c on o.customerNumber = c.customerNumber group by c.customerNumber order by count(*);
+with cte as (
+	select 
+		c.customerName, 
+        count(*) as "countOfEntries",
+		case 
+			when count(*) = 1 then "One-Time Customer"
+            when count(*) = 2 then "Two-Time Customer"
+            when count(*) = 3 then "Frequent Customer"
+            when count(*) >= 4 then "Loyal Customer"
+		end as "Type Of Customer"
+	from orders o inner join customers c on c.customerNumber = o.customerNumber
+    group by c.customerNumber
+)
+select customerName, `Type of Customer` from cte order by countOfEntries;
+
+select customerName, state, country from customers order by (
+case 
+	when state is null then country
+    else state
+end
+);
+select
+	sum(case when status = 'Shipped' then 1 end) as 'Shipped',
+    sum(case when status = 'Resolved' then 1 end) as 'Resolved',
+    sum(case when status = 'Cancelled' then 1 end) as 'Cancelled',
+    sum(case when status = 'On Hold' then 1 end) as 'On Hold',
+    sum(case when status = 'Disputed' then 1 end) as 'Disputed',
+    sum(case when status = 'In Process' then 1 end) as 'In Process',
+    count(*) as 'Total'    
+from orders;
+
+SELECT IF(1 = 2,'true','false'); -- false
+SELECT IF(1 = 1,' true','false'); -- true
+select customerNumber, customerName, city, if(state is null, 'N/A',state), country from customers;
+select sum(if(status = 'Shipped',1,0)) as ShippedCount from orders;
+SELECT 
+    COUNT(IF(status = 'Cancelled', 1, NULL)) Cancelled,
+    COUNT(IF(status = 'Disputed', 1, NULL)) Disputed,
+    COUNT(IF(status = 'In Process', 1, NULL)) 'In Process',
+    COUNT(IF(status = 'On Hold', 1, NULL)) 'On Hold',
+    COUNT(IF(status = 'Resolved', 1, NULL)) 'Resolved',
+    COUNT(IF(status = 'Shipped', 1, NULL)) 'Shipped'
+FROM
+orders;
+select customerName, ifnull(concat(state,', ',country),country) as 'Address' from customers;
+SELECT NULLIF(1,1); -- return NULL
+SELECT NULLIF(1,2); -- return 1
+SELECT NULLIF('MySQL NULLIF','MySQL NULLIF'); -- return NULL
+SELECT NULLIF('MySQL NULLIF','MySQL IFNULL'); -- return MySQL NULLIF
+SELECT NULLIF(1,NULL); -- return 1 because 1 <=> NULL
+SELECT NULLIF(NULL,1); -- return NULL the first argument
+select nullif(null,null);
+SELECT 1/0; -- cause error
+SELECT 1/NULLIF(0,0); -- return NULL
+select sum(if(status = 'Shipped',1,0)) / sum(if(status= 'Cancelled',1,0)) from orders  where orderDate between cast('2003-06-01' as Date) and cast('2003-06-30' as Date);
+select sum(if(status = 'Shipped',1,0)) / nullif(sum(if(status= 'Cancelled',1,0)),0) from orders  where orderDate between cast('2003-06-01' as Date) and cast('2003-06-30' as Date);
+select status, count(if(status='Shipped',1,0)), count(if(status='Cancelled',1,0)) from orders where status in ('Shipped','Cancelled') and orderDate between cast('2003-06-01' as Date) and cast('2003-06-30' as Date) group by status;
+*/
+
+

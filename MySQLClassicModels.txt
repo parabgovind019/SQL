@@ -412,3 +412,13 @@ select status, count(if(status='Shipped',1,0)), count(if(status='Cancelled',1,0)
 */
 
 
+use classicmodels;
+select concat_ws(" ",firstName, lastName) as `Full Name` from employees order by `Full Name`;
+select orderNumber as `Order No.`, sum(quantityOrdered*priceEach) as `Total Cost` from orderDetails group by `Order No.` having `Total cost` > 60000 order by `Total Cost` desc;
+select c.customerNumber, c.customerName, count(o.orderNumber) as `Total Orders` 
+from Customers c 
+inner join Orders o on c.customerNumber = o.customerNumber 
+group by c.customerNumber
+order by `Total Orders` desc;
+
+

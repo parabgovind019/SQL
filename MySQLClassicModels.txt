@@ -481,3 +481,70 @@ select o1.orderNumber, p1.productName, p1.msrp, o1.priceEach
 from orderDetails o1 inner join products p1 on o1.productCode = p1.productCode and p1.msrp > o1.priceEach where o1.productCode = 'S10_1678';
 
 
+-- left join
+use classicmodels;
+select * from customers;
+select * from orders;
+select c1.customerNumber, c1.customerName, o1.orderNumber, o1.status 
+from customers c1 left join orders o1 on c1.customerNumber = o1.customerNumber;
+select c1.customerNumber, c1.customerName, o1.orderNumber, o1.status 
+from customers c1 left join orders o1 on c1.customerNumber = o1.customerNumber where o1.orderNumber is null;
+
+select e1.firstName, e1.lastName, c1.customerName, p1.checkNumber, p1.amount 
+from employees e1 left join customers c1 on e1.employeeNumber = c1.salesRepEmployeeNumber 
+left join payments p1 on c1.customerNumber = p1.customerNumber 
+order by c1.customerName, p1.checkNumber;
+
+select o1.orderNumber, o1.customerNumber, o2.productCode 
+from orders o1 left join orderDetails o2 on o1.orderNumber = o2.orderNumber;
+
+-- right join
+select concat_ws(" ",e.firstName,e.lastName) as `Employee Name`, c.customerNumber, c.customerName 
+from customers c right join employees e on c.salesRepEmployeeNumber = e.employeeNumber
+order by c.customerName;
+
+-- self join
+select concat_ws(" ",e1.firstName,e1.lastName) as `Employee Name`, concat_ws(" ",e2.firstName,e2.lastName) as `Manager Name` 
+from employees e1 inner join employees e2 on e1.reportsTo = e2.employeeNumber
+order by `Manager Name`;
+
+/*
+CREATE TABLE customers (
+    customerID INT PRIMARY KEY,
+    customerName VARCHAR(50),
+    email VARCHAR(50),
+    city VARCHAR(50)
+);
+INSERT INTO customers (customerID, customerName, email, city) VALUES
+(1, 'Amit', 'amit@gmail.com', 'Mumbai'),
+(2, 'Rohan', 'rohan@gmail.com', 'Delhi'),
+(3, 'Amit S', 'amit@gmail.com', 'Pune'),        -- Duplicate email of ID 1
+(4, 'Sana', 'sana@gmail.com', 'Delhi'),
+(5, 'Zoya', 'zoya@gmail.com', 'Mumbai'),
+(6, 'Amit P', 'amit@gmail.com', 'Mumbai'),      -- Duplicate email of ID 1 and 3
+(7, 'Rohan K', 'rohan@gmail.com', 'Delhi'),     -- Duplicate email of ID 2
+(8, 'Meera', 'meera@gmail.com', 'Pune'),
+(9, 'Rohan', 'rohan@gmail.com', 'Delhi');       -- Duplicate email of ID 2 and 7
+
+select c1.customerID as 'dup1', c2.customerID as 'dup2', c1.email 
+from customers c1 inner join customers c2 on c1.email = c2.email and c2.customerID > c1.customerID;
+*/
+
+CREATE TABLE suits (
+    suit_id INT,
+    suit_name VARCHAR(10)
+);
+CREATE TABLE ranks (
+    rank_id INT,
+    rank_name VARCHAR(5)
+);
+INSERT INTO suits (suit_id, suit_name) VALUES(1, 'Hearts'),(2, 'Diamonds'),(3, 'Clubs'),(4, 'Spades');
+
+INSERT INTO ranks (rank_id, rank_name) VALUES 
+(1, 'Ace'),(2, '2'),(3, '3'),(4, '4'),
+(5, '5'),(6, '6'),(7, '7'),(8, '8'),(9, '9'),
+(10, '10'),(11, 'Jack'),(12, 'Queen'),(13, 'King');
+
+select suit_name, rank_name from suits cross join ranks;
+
+

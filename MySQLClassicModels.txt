@@ -639,3 +639,60 @@ group by c1.customerNumber
 having count(o1.orderNumber) > 4;
 
 
+use classicmodels;
+CREATE TABLE sales
+SELECT productLine, YEAR(orderDate) orderYear, SUM(quantityOrdered * priceEach) orderValue
+FROM orderDetails INNER JOIN orders USING (orderNumber) 
+INNER JOIN products USING (productCode)
+GROUP BY productLine, YEAR(orderDate);
+
+select * from sales;
+
+select productLine, sum(orderValue) from sales group by productLine;
+
+select sum(orderValue) `Total` from sales;
+
+SELECT productline, SUM(orderValue) totalOrderValue FROM sales GROUP BY productline 
+UNION ALL
+SELECT NULL, SUM(orderValue) totalOrderValue FROM sales;
+
+select productLine, sum(orderValue) as `Total Cost` from sales group by productLine with rollup;
+
+select productLine, orderYear, sum(orderValue) as 'Total' from sales group by productLine, orderYear with rollup;
+select orderYear, productLine, sum(orderValue) as 'Total' from sales group by orderYear, productLine with rollup;
+
+select productLine, orderYear, sum(orderValue) as 'Total', grouping(productLine), grouping(orderYear) from sales group by productLine, orderYear with rollup;
+select if(grouping(productLine),'All Product Lines',productLine), if(grouping(orderYear),'All Orders',orderYear), sum(orderValue) as 'Total' from sales group by productLine, orderYear with rollup;
+
+/*
+DROP TABLE IF EXISTS sales;
+
+CREATE TABLE sales (
+    region VARCHAR(20),
+    product VARCHAR(20),
+    amount INT
+);
+INSERT INTO sales VALUES
+('North', 'Laptop', 100),
+('North', 'Laptop', 150),
+('North', 'Mobile', 200),
+('South', 'Laptop', 300),
+('South', 'Mobile', 250),
+('South', 'Mobile', 100);
+
+-- cube workaround
+
+-- region + product
+select region, product, sum(amount) as 'total amount' from sales group by region, product 
+union 
+-- region subtotal
+select region, null as 'product', sum(amount) as 'total amount' from sales group  by region
+union 
+-- product subtotal
+select null as 'region', product, sum(amount) as 'total amount' from sales group  by product
+union 
+-- grandtotal
+select null as 'region', null as 'product', sum(amount) as 'total amount' from sales;
+*/
+
+

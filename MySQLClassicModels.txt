@@ -696,3 +696,49 @@ select null as 'region', null as 'product', sum(amount) as 'total amount' from s
 */
 
 
+-- temporary tables
+use classicmodels;
+create temporary table credits(
+customerNumber int primary key,
+creditLimit decimal(10,2)
+);
+insert into credits (customerNumber, creditLimit)
+select customerNumber, creditLimit from customers where creditLimit > 0;
+select * from credits;
+
+create temporary table topRevenue 
+select c1.customerNumber, c1.customerName, sum(p1.amount) as 'revenue' 
+from customers c1 inner join payments p1 using(customerNumber) 
+group by c1.customerNumber 
+order by `revenue` desc limit 10;
+select * from topRevenue;
+drop temporary table topRevenue;
+drop temporary table credits;
+
+-- derived tables
+select * from orders;
+select * from orderDetails;
+select p1.productName, temp1.* from 
+(select o2.productCode, sum(o2.quantityOrdered*o2.priceEach) as `Total` 
+from orders o1 inner join orderDetails o2 on o1.orderNumber = o2.orderNumber and year(o1.shippedDate) = 2003  
+group by year(o1.shippedDate), productCode 
+order by `Total` desc limit 5) as temp1
+inner join products p1 on p1.productCode = temp1.productCode;
+
+select * from customers;
+select * from orders;
+select * from orderDetails;
+
+select temp1.Group, count(temp1.customerNumber) as `Count` from
+(select o1.customerNumber, sum(o2.quantityOrdered*o2.priceEach) as `Total` , 
+case 
+	when sum(o2.quantityOrdered*o2.priceEach) < 10000 then 'Silver'
+	when sum(o2.quantityOrdered*o2.priceEach) between 10000 and 100000 then 'Gold'
+    when sum(o2.quantityOrdered*o2.priceEach) > 100000 then 'Platinum'
+end as `Group` 
+from orders o1 inner join orderDetails o2 on o1.orderNumber = o2.orderNumber and year(o1.shippedDate) = 2003 
+group by o1.customerNumber) as temp1 
+group by temp1.Group;
+
+
+

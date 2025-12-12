@@ -592,3 +592,50 @@ RIGHT JOIN orders o
 */
 
 
+use classicmodels;
+select status from orders group by status;
+
+select status, count(*) from orders group by status;
+
+select o1.status, sum(o2.quantityOrdered * o2.priceEach) as `Total` 
+from orders o1 inner join orderDetails o2 on o1.orderNumber = o2.orderNumber
+group by status;
+
+select o1.orderNumber, sum(o2.quantityOrdered * o2.priceEach) as `Total` 
+from orders o1 left join orderDetails o2 on o1.orderNumber = o2.orderNumber
+group by o1.orderNumber;
+
+SELECT orderNumber, SUM(quantityOrdered * priceEach) AS total 
+FROM orderdetails 
+GROUP BY orderNumber;
+
+select year(o1.orderDate) as `Year`, SUM(o2.quantityOrdered * o2.priceEach) AS `Total`
+from orders o1 inner join orderDetails o2 on o1.orderNumber = o2.orderNumber 
+group by `Year`;
+
+select year(o1.orderDate) as `Year`, SUM(o2.quantityOrdered * o2.priceEach) AS `Total`
+from orders o1 inner join orderDetails o2 on o1.orderNumber = o2.orderNumber 
+group by `Year`
+having `Year` > 2003;
+
+select year(o1.orderDate) as `Year`, o1.status, SUM(o2.quantityOrdered * o2.priceEach) AS `Total` 
+from orders o1 inner join orderDetails o2 on  o1.orderNumber = o2.orderNumber 
+group by `Year`, status
+order by `Year`;
+
+select orderNumber, sum(quantityOrdered) as `Items Sold`, sum(quantityOrdered*priceEach) as `Total` 
+from orderDetails 
+group by orderNumber
+having `Total` > 1000 and `Items Sold` > 600;
+
+select o1.orderNumber, o1.status, sum(o2.quantityOrdered*o2.priceEach) as `Total` 
+from orders o1 inner join orderDetails o2 on o1.orderNumber = o2.orderNumber and o1.status = 'Shipped' 
+group by o1.orderNumber
+having `Total` > 1500;
+
+select c1.customerName, c1.customerNumber, count(o1.orderNumber) 
+from customers c1 inner join orders o1 on c1.customerNumber = o1.customerNumber 
+group by c1.customerNumber 
+having count(o1.orderNumber) > 4;
+
+

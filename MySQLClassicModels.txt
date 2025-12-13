@@ -741,4 +741,34 @@ group by o1.customerNumber) as temp1
 group by temp1.Group;
 
 
+use classicmodels;
+select * from employees;
+select * from offices;
+select employeeNumber, concat_ws(" ",firstName,lastName) as `Employee Name` 
+from employees 
+where officeCode in (select officeCode from offices where country like 'USA');
+
+select * from payments;
+select customerNumber, checkNumber, amount from payments where amount = (select max(amount) from payments);
+select customerNumber, checkNumber, amount from payments where amount > (select avg(amount) from payments);
+
+select * from orders;
+select * from customers;
+select customerNumber, customerName from customers where customerNumber not in (select distinct customerNumber from orders);
+
+select max(temp1.Count) as `Max Items`, min(temp1.Count) as `Min Items`, floor(avg(temp1.Count)) as `Average Items` 
+from (select orderNumber, count(*) as `Count` from orderDetails group by orderNumber) as temp1;
+
+select * from products;
+select p1.productCode, p1.productName, p1.productLine, p1.buyPrice from products p1 
+where p1.buyPrice > (select avg(buyPrice) from products where productLine = p1.productLine);
+
+select * from orders;
+select * from orderDetails;
+select c1.customerNumber, c1.customerName from customers c1 where exists (
+select o1.orderNumber, o1.customerNumber, sum(o2.quantityOrdered*o2.priceEach) as `total` 
+from orders o1 inner join orderDetails o2 on o1.orderNumber = o2.orderNumber and o1.customerNumber = c1.customerNumber 
+group by o1.orderNumber 
+having sum(o2.quantityOrdered*o2.priceEach) > 60000);
+
 

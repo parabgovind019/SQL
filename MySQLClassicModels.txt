@@ -772,3 +772,66 @@ group by o1.orderNumber
 having sum(o2.quantityOrdered*o2.priceEach) > 60000);
 
 
+SELECT COALESCE(NULL, 0);  -- 0
+SELECT COALESCE(NULL, NULL); -- NULL;
+SELECT customerName, city, state, country FROM customers;
+SELECT customerName, city, COALESCE(state, 'N/A'), country FROM customers;
+CREATE TABLE articles (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(255) NOT NULL,
+    excerpt TEXT,
+    body TEXT NOT NULL,
+    published_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+INSERT INTO articles(title,excerpt,body)
+VALUES('MySQL COALESCE Tutorial','This tutorial is about MySQL COALESCE function', 'all about COALESCE function'),
+      ('MySQL 8.0 New Features',null, 'The following is a list of new features in MySQL 8.0');
+
+select * from articles;
+select id, title, COALESCE(excerpt,left(body,100)), body, published_at, updated_at from articles;
+
+SELECT ISNULL(NULL); -- 1    
+SELECT ISNULL(1);  -- 0
+SELECT ISNULL(1 + NULL); -- 1;
+SELECT ISNULL(1 / 0 ); -- 1;
+CREATE TABLE special_isnull (
+    start_date DATE NOT NULL
+);
+INSERT INTO special_isnull(start_date) VALUES('2000-01-01'), ('0000-00-00');
+SELECT * FROM special_isnull WHERE ISNULL(start_date);
+SELECT * FROM special_isnull WHERE start_date is null;
+SELECT * FROM special_isnull WHERE !ISNULL(start_date);
+SELECT * FROM special_isnull WHERE start_date is not null;
+
+SELECT GREATEST(10, 20, 30),  -- 30
+       LEAST(10, 20, 30); -- 10
+
+
+SELECT GREATEST(10, null, 30),  -- null
+       LEAST(10, null , 30); -- null
+
+CREATE TABLE IF NOT EXISTS revenues (
+    company_id INT PRIMARY KEY,
+    q1 DECIMAL(19 , 2 ),
+    q2 DECIMAL(19 , 2 ),
+    q3 DECIMAL(19 , 2 ),
+    q4 DECIMAL(19 , 2 )
+);
+
+INSERT INTO revenues(company_id,q1,q2,q3,q4) VALUES (1,100,120,110,130), (2,250,260,300,310);
+
+select * from revenues;
+
+select company_id, Least(q1,q2,q3,q4) as 'Low', GREATEST(q1,q2,q3,q4) as 'High' from revenues;
+
+INSERT INTO revenues(company_id,q1,q2,q3,q4) VALUES (3,100,120,110,null);
+
+select company_id, Least(q1,q2,q3,q4) as 'Low', GREATEST(q1,q2,q3,q4) as 'High' from revenues;
+
+select company_id, 
+Least(IFNULL(q1,0),IFNULL(q2,0),IFNULL(q3,0),IFNULL(q4,0)) as 'Low', 
+GREATEST(IFNULL(q1,0),IFNULL(q2,0),IFNULL(q3,0),IFNULL(q4,0)) as 'High' 
+from revenues;
+
+

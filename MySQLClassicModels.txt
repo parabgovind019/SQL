@@ -1153,3 +1153,78 @@ SHOW CREATE TABLE products;
 SET foreign_key_checks = 0;
 SET foreign_key_checks = 1;
 */
+
+
+use classicmodels;
+select avg(buyPrice) from products;
+select productLine, avg(buyPrice) from products group by productLine;
+select count(*) from products;
+select productLine, count(*) from products group by productLine;
+
+SELECT productCode, SUM(priceEach * quantityOrdered) total FROM orderDetails GROUP BY productCode ORDER BY total DESC;
+
+SELECT productCode, productName, SUM(priceEach * quantityOrdered) total
+FROM orderDetails INNER JOIN products USING (productCode)
+GROUP BY productCode ORDER BY total;
+
+select max(buyPrice) from products;
+select min(buyPrice) from products;
+
+select productLine, max(buyPrice) from products group by productLine;
+select productLine, min(buyPrice) from products group by productLine;
+
+select firstName, lastName, group_concat(distinct customerName order by customerName) as 'Customers' 
+from employees inner join customers on employees.employeeNumber = customers.salesRepEmployeeNumber
+group by employees.employeeNumber;
+
+select avg(buyPrice) from products where productLine = 'classic cars';
+
+SELECT FORMAT(AVG(DISTINCT buyprice), 2) FROM products;
+
+select avg(temp.pl_avg) as 'Average Products' from 
+(select productLine, avg(buyPrice) as 'pl_avg' from products group by productLine) as temp;
+
+SELECT AVG(IF(productline = 'Classic Cars', buyprice, NULL)) / AVG(buyprice) 'Classic Cars/ Products' FROM products;
+
+CREATE TABLE sales (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    product_name VARCHAR(255),
+    sale_date DATE,
+    amount DECIMAL(10, 2)
+);
+
+-- Insert data for October
+INSERT INTO sales (product_name, sale_date, amount) VALUES
+('Phone', '2023-10-01', 200.00),
+('Tablet', '2023-10-05', 150.00),
+('Phone', '2023-10-10', 220.00),
+('Tablet', '2023-10-15', 180.00),
+('Phone', '2023-10-20', 250.00),
+('Tablet', '2023-10-25', 190.00),
+('Phone', '2023-11-02', 210.00),
+('Tablet', '2023-11-07', 160.00),
+('Phone', '2023-11-12', 230.00),
+('Tablet', '2023-11-18', 170.00),
+('Phone', '2023-11-23', 240.00),
+('Tablet', '2023-11-28', 200.00),
+('Phone', '2023-12-03', 190.00),
+('Tablet', '2023-12-08', 140.00),
+('Phone', '2023-12-13', 210.00),
+('Tablet', '2023-12-19', 160.00),
+('Phone', '2023-12-24', 230.00),
+('Tablet', '2023-12-29', 180.00);
+    
+SELECT 
+  SUM(
+    IF(
+      product_name = 'Phone' 
+      AND MONTH(sale_date) = 10 
+      AND YEAR(sale_date) = 2023, 
+      amount, 
+      0
+    )
+  ) AS total_sales 
+FROM 
+  sales;
+
+

@@ -1228,3 +1228,106 @@ FROM
   sales;
 
 
+/*
+ ABS()	Returns the absolute value of a number.
+select abs(-15); -- 15
+
+CEIL()	Returns the smallest integer value greater than or equal to the input number (n).
+select ceil(5.0); -- 5
+select ceil(5.1); -- 6
+select ceil(5.5); -- 6
+select ceil(5.7); -- 6
+
+FLOOR()	Returns the largest integer value not greater than the argument.
+select floor(5.0); -- 5
+select floor(5.2); -- 5
+select floor(5.5); -- 5
+select floor(5.6); -- 5
+
+MOD()	Returns the remainder of a number divided by another.
+select mod(5,3); -- 2
+select mod(5,1); -- 0
+select mod(5,7); -- 5
+
+Notice that the TRUNCATE() function is similar to the ROUND() function in terms of reducing the number of decimal places. However, the TRUNCATE() function does not perform any rounding as the ROUND() function does.
+
+ROUND()	Rounds a number to a specified number of decimal places.
+select round(2.5); -- 3
+select round(2.3); -- 2
+select round(2.7); -- 3
+select round(3.45632587,5); -- 3.45633
+select round(3.45632187,5); -- 3.45632
+-- round(x, -n) rounds x to the nearest 10ⁿ.
+
+-- -2 → nearest hundred
+
+-- -3 → nearest thousand
+
+-- -4 → nearest ten-thousand
+select round(1256.2365,-2); -- 1300
+select round(1234.2365,-2); -- 1200
+
+TRUNCATE()	Truncates a number to a specified number of decimal places
+select truncate(2.5,0); -- 2
+select truncate(2.5,1); -- 2.5
+select truncate(2.3236,2); -- 2.32
+select truncate(2.73622,1); -- 2.7
+select truncate(3.45632587,5); -- 3.45632
+select truncate(3.45632187,5); -- 3.45632
+select truncate(1256.2365,-2); -- 1200
+select truncate(1234.2365,-2); -- 1200
+
+EXP(n)	Raises to the power of e raised to the power of n.
+select exp(1); -- 2.718281828459045
+
+The RAND() function returns a random number v with the following value:
+0 <= v < 1.0
+
+If you use a constant seed value, the RAND() function will return the same value each time.
+For example, executing the following statement that uses the RAND() function with the same seed value will return the same random number:
+SELECT RAND(1);
+
+In practice, you often want to obtain a random integer R where i <= R < j.
+To do that, you can combine the RAND() function with the FLOOR() function as follows:
+FLOOR(i + RAND() * (j − i))
+For example, the following returns a random number between 1 and 10:
+SELECT FLOOR(1 + RAND() * 9);
+
+POW()	Returns the argument raised to the specified power.
+select pow(2,4); -- 16
+
+POWER()	Returns the argument raised to the specified power.
+select power(5,3); -- 125
+
+CONV(n,from_base,to_base)	Converts a number between different number bases
+select conv(1001,2,10); -- 9
+
+SQRT(n)	Returns the square root of n
+select sqrt(16); -- 4
+select sqrt(15); -- 3.872983346207417
+
+LOG2()	Returns the base-2 logarithm of the argument
+select log2(8); -- 3
+
+LOG10()	Returns the base-10 logarithm of the argument
+select log10(100); -- 2
+select log10(1000); -- 3
+
+LOG(n)	Returns the natural logarithm of the first argument
+select log(1); -- 0
+select log(2.7183); -- 1.0000066849139877
+
+SIGN(n)	Returns the sign of n that can be -1, 0, or 1 depending on whether n is negative, zero, or positive.
+select sign(15); -- 1
+select sign(0); -- 0
+select sign(-15); -- -1
+
+PI()	Returns the value of PI
+select pi(); -- 3.141593
+
+select sin(radians(90));
+
+select degrees(radians(180));
+*/
+
+

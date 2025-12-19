@@ -1331,3 +1331,387 @@ select degrees(radians(180));
 */
 
 
+use classicmodels;
+select concat(firstName, " ",lastName) as 'Full Name' from employees;
+select city, state, concat(city,", ",state) as 'City State' from customers; -- returns null if any value is null
+select city, state, concat(city,if(state is null,""," "),ifnull(state,"")) as 'City State' from customers;
+select city, state, concat_ws(', ',city,state) as 'City State' from customers; -- skips nulls and include empty and non empty strings
+select concat_ws(' ',firstName, lastName) as 'Full Name' from employees;
+/*
+-- String Functions
+-- Concatenation Function
+The CONCAT() function allows you to concatenate multiple strings into a single string.
+
+Here’s the basic syntax of the CONCAT() function:
+
+CONCAT(string1, string2, string3, ...)
+The CONCAT() function accepts a variable number of input strings: string1, string2, string3, …
+
+It returns a single string that combines the string arguments string1, string2, and string3 …
+
+If any string is NULL, the CONCAT() function returns NULL.
+
+In addition, if you pass numbers to the CONCAT() function, it’ll convert these numbers to their equivalent strings before concatenation.
+
+select concat(1,2,3,4,5,6);
+select concat("Govind"," ","Rama"," ","Parab") as 'Full Name';
+select concat("Null Values",null);
+select concat(firstName," ",lastName ) as 'Name' from employees;
+select concat(city," ",state) as 'Location' from customers order by 'Location';
+-- with if
+select concat(city," ",if(state is null,'',state)) as 'Location' from customers order by 'Location';
+-- with ifnull
+select concat(city," ",ifnull(state,'')) as 'Location' from customers order by 'Location';
+-- The CONCAT_WS function concatenates multiple strings into a string delimited by a specified space. It skips the NULL values.
+select concat_ws(', ',city,state) as 'Location' from customers;
+
+
+CONCAT_WS stands for Concatenate With Separator. The CONCAT_WS function concatenates multiple strings into a single string separated by a specified separator.
+
+Here’s the syntax of the CONCAT_WS function:
+
+CONCAT_WS(separator, string1, string2, string3, ...)
+In this syntax:
+
+separator: This is a separator that you use to separate the strings.
+string1, string2, string3, ..: The strings that you want to concatenate.
+The CONCAT_WS returns a single string that combines the string1, string2, string3… separated by the separator.
+
+If the separator is NULL, the CONCAT_WS will return NULL. The CONCAT_WS function does not skip empty strings. But if does skip any NULL strings (string1, string2, string3…).
+
+In practice, you use the CONCAT_WS function to combine values from different columns with a custom separator.
+
+select concat_ws(',',"Govind","Sahil","Sanchit");
+select concat_ws(null,"Govind","Parab");-- if separator is null then it returns null
+select concat_ws(";","Govind",null);-- both empty, non-empty strings will be included and null strings will be skiped
+select concat_ws(", ",city,state) as 'Location' from customers;
+*/
+
+-- upper(str) or ucase(str)
+-- select upper("Govind");
+-- select ucase("Govind");
+-- select upper(firstName) from employees;
+-- Handling binary string data
+-- The UPPER() function is ineffective when applied to the binary strings such as BINARY, VARBINARY, and BLOB.
+-- Therefore, before passing a binary string to the UPPER() function, you need to convert the string to a nonbinary string
+SET @str = BINARY 'Binary String';
+-- select upper(@str); -- won't work
+SELECT UPPER(@str), UPPER(CONVERT(@str USING utf8mb4)) uppercase;
+
+-- similar for lower(str) or lcase(str)
+-- select lower("Govind");
+-- select lower(firstName) from employees;
+-- select lcase("Minal");
+set @str = Binary "MySQL";
+-- select lower(@str); -- won't work
+select lower(convert(@str using utf8mb4));
+
+/*
+One of the most important tasks in data cleansing is to remove the unwanted leading and trailing characters.
+
+MySQL provides a very useful string function named TRIM() to help you clean up the data. The following illustrates the syntax of the TRIM() function.
+
+TRIM([{BOTH|LEADING|TRAILING} [removed_str]] FROM str);
+The TRIM function provides a number of options. You can use the LEADING, TRAILING, or BOTH option to explicitly instruct the TRIM() function to remove leading, trailing, or both leading and trailing unwanted characters from a string.
+
+By default, the TRIM() function uses the BOTH option.
+
+The [removed_str] is the string that you want to remove. If you don’t specify a specific string, the TRIM() function removes spaces only.
+
+The str is the string that you want to remove the removed_str.
+
+The TRIM() function returns a string that has unwanted characters removed.
+*/
+-- select trim("  Govind  ");
+-- select trim(leading from"  Govind  ");
+-- select ltrim("  Govind  ");
+-- select trim(trailing from "  Govind  ");
+-- select rtrim("  Govind  ");
+-- select trim(leading "*" from"*****Govind  ");
+-- select trim(both "*" from"***Govind***");
+-- select trim(both "\n\r" from "
+-- *
+-- Govind
+-- *
+-- ");
+-- UPDATE products 
+-- SET 
+--     productname = TRIM(productname);
+
+/*
+SELECT 
+    TRIM(TRAILING '\n' FROM field_name)
+FROM table_name;
+SELECT 
+    TRIM(TRAILING '\r\n' FROM field_name)
+FROM table_name;
+*/
+
+-- If the str is NULL, the LTRIM() function returns NULL.
+-- Use the LTRIM() function to remove all the leading spaces of a string.
+-- select ltrim("     Govind");-- only space for anyother use trim(leading "" from "")
+
+
+-- Use the RTRIM() function to remove all trailing spaces of a string.
+-- select rtrim("Govind      ");-- only space for anyother use trim(trailing "" from "")
+
+SELECT addressLine1,SUBSTRING_INDEX(addressLine1, ' ', 1) AS `House No.` FROM customers where country = 'USA';
+/*
+-- in MySQL string starts from 1 not 0
+-- SUBSTRING(string, position);
+SELECT SUBSTRING('MYSQL SUBSTRING', 7); -- SUBSTRING
+SELECT SUBSTRING('MySQL SUBSTRING',-10); --  SUBSTRING
+-- Notice that if the position is zero, the SUBSTRING() function returns an empty string:
+SELECT SUBSTRING('MYSQL SUBSTRING', 0); -- ''
+-- SUBSTRING(string, position, length);
+SELECT SUBSTRING('MySQL SUBSTRING',1,5); -- MySQL
+SELECT SUBSTRING('MySQL SUBSTRING',-15,5); -- MySQL
+select substring("Govind",2,40);
+select substring("Govind",2,null);
+select substring("Govind",null,2);
+-- The MID() function is a synonym for SUBSTRING().
+
+SUBSTRING_INDEX(str,delimiter,n)
+
+str is the string from which you want to extract a substring.
+delimiter is a string that acts as a delimiter. 
+The function performs a case-sensitive match when searching for the delimiter.
+n is an integer that specifies the number of occurrences of the delimiter. 
+The n can be negative or positive. 
+If n is positive, the function returns every character from the left of the string up to n number of occurrences of the delimiter. 
+If n is negative, the function returns every character from right up to n number of occurrences of the delimiter.
+SELECT SUBSTRING_INDEX('Hello World', 'l',1);
+SELECT SUBSTRING_INDEX('Hello World', 'l',2);
+SELECT SUBSTRING_INDEX('Hello World', 'l',3);
+SELECT SUBSTRING_INDEX('Hello World', 'l', -1);
+SELECT SUBSTRING_INDEX('Hello World', 'l', -2);
+SELECT SUBSTRING_INDEX('Hello World', 'l', -3);
+select substring_index("Govind Rama Parab"," ",1);
+select substring_index("Govind Rama Parab"," ",-1);
+select customerName, substring_index(addressLine1," ",1) as 'House Number' from customers;
+
+
+-- The LEFT function returns the leftmost length characters from the str string. It returns a NULL value if either str or length argument is NULL.
+
+-- If the length is zero or negative, the LEFT function returns an empty string. If the length is greater than the length of the str string, the LEFT function returns the entire str string.
+-- select left("Govind",2);
+-- select left("Govind",null);
+-- select left("Hello Govind",5);
+-- select left("Hello Govind",50);
+-- select left("Going",-2);
+
+-- same for right
+-- select right("Govind",2);
+-- select right("Govind",null);
+-- select right("Hello Govind",5);
+-- select right("Hello Govind",50);
+-- select right("Going",-2);
+
+SET @str = '12/31/2019';
+SELECT 
+    RIGHT(@str, 4) year,
+    LEFT(@str, 2) month,
+    SUBSTRING(@str, 4, 2) day;
+*/
+
+/*
+The LPAD() function allows you to left-pad a string with a specific set of characters to a specified length.
+
+Here’s the syntax of the LPAD() function:
+
+LPAD(string, length, pad_string)
+In this syntax:
+
+string: The input string that you want to left-pad.
+length: The total length of the resulting string after padding.
+pad_string: The string that you use for padding.
+If any argument is NULL, the LPAD() will return NULL.
+
+In practice, you use the LPAD() function format strings with consistent length, align text in columns or prepare data for display.
+
+select lpad("Govind",10,"*");
+select lpad(125,5,0);
+select lpad("Kritika",20," ");
+
+-- similarly rpad()
+select rpad("Govind",10,"*");
+select rpad(125,5,0);
+select rpad("Kritika",20," ");
+select rpad(firstName,50,"*") from employees;
+*/
+select productName from products where locate('harley',productDescription)>0; -- case-insensitive
+/*
+The LOCATE() function returns the position of a substring within a given string. The LOCATE() function has the following syntax:
+
+LOCATE(substring, string, position)
+
+In this syntax:
+
+substring: The substring that you want to locate within the main string.
+string: The main string that you want to find the substring.
+position: The position within the main string where you want to start searching for the substring. The position is optional. If you omit it, the search starts from the beginning of the string.
+If the LOCATE() function cannot find the substring in the string starting at the position, it returns 0.
+
+If any argument is NULL, the LOCATE() function returns NULL.
+
+-- SELECT LOCATE('MySQL', 'Hello, MySQL') position;
+
+-- SELECT LOCATE('know', "You don't know what you don't know", 12) position;
+
+-- SELECT LOCATE('alien', 'earth');
+
+-- SELECT INSTR('MySQL INSTR', 'MySQL');
+
+-- SELECT INSTR('MySQL INSTR', 'mysql');
+
+-- SELECT INSTR('MySQL INSTR', binary 'mysql');
+*/
+
+UPDATE products SET productDescription = REPLACE(productDescription,'abuot','about');
+
+
+/*
+the REPEAT() function allows you to repeat a string a specified number of times.
+REPEAT(string,count)
+string. The string that you want to repeat.
+count. The number of times that you want to repeat the string in the resulting string.
+The REPEAT() function returns the string that repeats count times. If the count is less than 1, the function returns an empty string.
+
+Also, if str or count is NULL, the REPEAT() function returns NULL.
+
+The REPEAT() function can be very useful when you want to format the data for display.
+*/
+-- SELECT REPEAT('Go',3);
+
+/*
+The REVERSE() function accepts a string and returns a new string with the order of characters reversed.
+REVERSE(string)
+string: The input string that you want to reverse.
+The REVERSE() function returns the string with the order of the characters reversed. If the string is NULL, the REVERSE() function returns NULL.
+*/
+-- select reverse("Govind");
+-- set @str = "radar";
+-- set @str2 = "Kite";
+-- select reverse(@str);
+-- select @str, reverse(@str),(@str = reverse(@str));
+-- select @str2, reverse(@str2),(@str2 = reverse(@str2));
+
+/*
+MySQL provides you with a useful string function called REPLACE that allows you to replace a string in a column of a table by a new string.
+
+The syntax of the REPLACE function is as follows:
+
+REPLACE(str,old_string,new_string);
+
+The REPLACE function has three parameters. It replaces the old_string by the new_string in the string
+
+Notice there is a statement also called REPLACE used to insert or update data. You should not confuse the REPLACE statement with the REPLACE string function.
+
+It is very important to note that in the REPLACE function, the first parameter is the column name without quotes (“). If you put the quotes to the field name like “field_name”, the query will update the content of that column to “field_name”, which is causing unexpected data loss.
+
+The REPLACE function does not support regular expression so if you need to replace a text string by a pattern you need to use MySQL user-defined function (UDF) from external library, check it out here MySQL UDF with Regex
+*/
+-- select replace("Govind","Gov","w");
+
+
+
+/*
+The INSERT() function allows you to replace a substring within a string with a new substring.
+
+Here’s the basic syntax of the INSERT() function:
+
+INSERT(str, pos, len, newstr)
+
+In this syntax:
+
+str: The original string where you want to carry the replacement.
+pos: The position in the original string where you want to start the replacement.
+len: The length of the substring to be replaced.
+newstr: The new string that you want to replace the old substring.
+The INSERT() function returns the string str, with the substring starting at position pos and len characters long replaced by the string newstr. 
+
+If the length (len) is greater than the remaining length of the string after the starting position (pos), the INSERT() function will replace the characters from the starting position (pos) to the end of the string with the new substring.
+
+The INSERT() function returns the original string if pos is not within the length of the string.
+
+The INSERT() function also returns NULL if any argument is NULL.
+
+The INSERT() function is multibyte safe. This means that it can correctly handle strings containing multibyte characters, making it suitable for use in various language settings.
+
+Note that the INSERT() function doesn’t modify the original string; Instead, it returns a new string with the specified modifications.
+*/
+
+-- select insert("Govind",3,3,"o");
+-- select insert("Govind",-1,3,"ood");
+-- select insert("Govind",3,50,"MySQL");
+
+select char_length("Govind"), length("Govind"); -- length measured in bytes char length measured by no. of chars
+
+select char(97); -- Converts an ASCII value to a character
+
+select ascii("abc"); -- Returns the ASCII value of the leftmost character of a string
+
+select strcmp("Govind","Meenakshi"); -- Compares two strings and returns their relative order
+
+SELECT FIND_IN_SET('a','x,y,z');
+SELECT FIND_IN_SET('z','x,y,z');
+SELECT FIND_IN_SET('a','');
+
+
+CREATE TABLE IF NOT EXISTS divisions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(25) NOT NULL,
+    belts VARCHAR(200) NOT NULL
+);
+INSERT INTO divisions(name,belts)
+VALUES ('O-1','white,yellow,orange'),
+	('O-2','purple,green,blue'),
+	('O-3','brown,red,black'),
+	('O-4','white,yellow,orange'),
+	('O-5','purple,green,blue'),
+	('O-6','brown,red'),
+	('O-7','black'),
+	('O-8','white,yellow,orange'),
+	('O-9','purple,green,blue'),
+	('O-10','brown,red');
+SELECT 
+    name, 
+    belts
+FROM
+    divisions
+WHERE
+    FIND_IN_SET('red', belts);
+
+SELECT 
+    name, belts
+FROM
+    divisions
+WHERE
+    NOT FIND_IN_SET('black', belts);
+
+
+SELECT FORMAT(12500.2015, 2);
+SELECT FORMAT(12500.2015, 0);
+SELECT FORMAT(12500.2015, 2,'de_DE');
+SELECT productname, quantityInStock * buyPrice stock_value FROM products;
+SELECT productname, CONCAT('$', FORMAT(quantityInStock * buyPrice, 2)) stock_value FROM products;
+
+
+SELECT 
+    productCode,
+    AVG(quantityOrdered * priceEach) avg_order_item_value
+FROM
+    orderDetails
+GROUP BY 
+    productCode;    
+
+
+SELECT 
+    productCode,
+    ROUND(AVG(quantityOrdered * priceEach)) avg_order_item_value
+FROM
+    orderDetails
+GROUP BY 
+    productCode;
+
+

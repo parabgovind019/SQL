@@ -2266,3 +2266,123 @@ SET id = 4, name = 'Phoenix', population = 1768980;
 select * from cities
 
 
+SELECT engine, support 
+FROM information_schema.engines 
+ORDER BY engine;
+
+SHOW ENGINES;
+
+/*
+CREATE TABLE table_name(
+    column_list
+) ENGINE = engine_name;
+*/
+
+SHOW TABLES;
+
+-- ALTER TABLE contacts  AUTO_INCREMENT = 1;
+
+CREATE TABLE subscribers(
+   email VARCHAR(320) NOT NULL UNIQUE
+);
+alter table subscribers add column id int auto_increment primary key;
+insert into subscribers(email) values ("parabgovind0909@gmail.com");
+select * from subscribers;
+
+CREATE TABLE vehicles (
+    vehicleId INT,
+    year INT NOT NULL,
+    make VARCHAR(100) NOT NULL,
+    PRIMARY KEY(vehicleId)
+);
+/*
+ALTER TABLE table_name
+    ADD new_column_name column_definition
+    [FIRST | AFTER column_name],
+    ADD new_column_name column_definition
+    [FIRST | AFTER column_name],
+    ...;
+*/
+alter table vehicles add column model VARCHAR(100) NOT NULL;
+desc vehicles;
+alter table vehicles 
+add column color VARCHAR(50), 
+add column note VARCHAR(255);
+desc vehicles;
+/*
+ALTER TABLE table_name
+    MODIFY column_name column_definition
+    [ FIRST | AFTER column_name],
+    MODIFY column_name column_definition
+    [ FIRST | AFTER column_name],
+    ...;
+*/
+alter table vehicles modify column note varchar(255) not null;
+desc vehicles;
+ALTER TABLE vehicles 
+MODIFY year SMALLINT NOT NULL,
+MODIFY color VARCHAR(20) NULL AFTER make;
+
+desc vehicles;
+
+alter table vehicles change column note vehicleCondition varchar(255) not null first;
+desc vehicles;
+
+alter table vehicles drop column vehicleCondition;
+desc vehicles;
+
+alter table vehicles rename to cars;
+desc cars;
+
+-- be very very careful when renaming the table or rmoving a column
+
+/*
+RENAME old_table_name TO new_table_name; -- can't rename temp tables
+
+ALTER TABLE old_table_name RENAME TO new_table_name; -- can rename temp tables
+*/
+
+create table task(work varchar(100));
+insert into task() values ("Brush"),("Bath");
+select * from task;
+alter table task add column id int auto_increment primary key;
+select * from task;
+
+/*
+Note that the DROP TABLE statement only drops tables. 
+It doesn’t remove specific user privileges associated with the tables. 
+Therefore, if you create a table with the same name as the dropped one, MySQL will apply the existing privileges to the new table, which may pose a security risk.
+
+DROP [TEMPORARY] TABLE [IF EXISTS] table_name [, table_name] ...
+[RESTRICT | CASCADE]
+
+The RESTRICT and CASCADE  options are reserved for the future versions of MySQL.
+
+DROP TABLE LIKE '%pattern%'
+*/
+
+CREATE TABLE test1(
+  id INT AUTO_INCREMENT,
+  PRIMARY KEY(id)
+);
+
+CREATE TABLE IF NOT EXISTS test2 LIKE test1;
+CREATE TABLE IF NOT EXISTS test3 LIKE test1;
+
+-- TRUNCATE TABLE table_name;
+
+/*
+column_name data_type [GENERATED ALWAYS] AS (expression)
+   [VIRTUAL | STORED] [UNIQUE [KEY]]
+*/
+
+
+-- create
+CREATE TABLE EMPLOYEE (
+  fname TEXT NOT NULL,
+  lname TEXT NOT NULL,
+  fullname varchar(255) generated always as (concat(fname," ",lname)) virtual
+);
+
+INSERT INTO EMPLOYEE (fname, lname) VALUES ('Clark', 'Richer');
+select * from EMPLOYEE;

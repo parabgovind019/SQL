@@ -2386,3 +2386,124 @@ CREATE TABLE EMPLOYEE (
 
 INSERT INTO EMPLOYEE (fname, lname) VALUES ('Clark', 'Richer');
 select * from EMPLOYEE;
+
+
+use classicmodels;
+with customers_in_usa as (
+select customerName, state from customers where country = 'USA'
+)
+select customerName from customers_in_usa where state = 'CA';
+
+select *  from orders;
+select * from orderDetails;
+select * from customers;
+select * from employees;
+
+with cte as (
+select c.salesRepEmployeeNumber as employeeNumber, sum(o2.quantityOrdered * o2.priceEach) as sales
+from orders o inner join orderDetails o2 on o.orderNumber = o2.orderNumber 
+inner join customers c on o.customerNumber = c.customerNumber 
+where YEAR(shippedDate) = 2003 AND status = 'Shipped' 
+group by employeeNumber
+order by sales desc
+limit 5
+)
+select cte.employeeNumber, employees.firstName, employees.lastName, cte.sales 
+from cte inner join employees on cte.employeeNumber = employees.employeeNumber;
+
+with cte as (
+select employeeNumber, concat(firstName, " ",lastName) as FullName 
+from employees 
+where jobTitle = 'Sales Rep'
+),
+cte1 as (
+select employeeNumber, FullName, customerNumber, customerName from customers inner join cte on customers.salesRepEmployeeNumber = cte.employeeNumber
+)
+select employeeNumber, FullName, customerName from cte1 order by customerName;
+
+select * from offices;
+select * from employees;
+
+with cte as (
+select * from employees where jobTitle = 'Sales Rep'
+),
+cte2 as (
+select * from offices where country = 'USA'
+)
+select firstName, lastName, city, state, postalCode from cte inner join cte2 using (officeCode);
+
+use classicmodels;
+with recursive cte (n) as (
+select 1 -- anchor
+union
+select n + 1 -- recursive
+from cte 
+where n < 3
+)
+select * from cte;
+
+/*
+CREATE TABLE employees (
+    employeeNumber INT PRIMARY KEY,
+    firstName VARCHAR(50),
+    lastName VARCHAR(50),
+    reportsTo INT,
+    jobTitle VARCHAR(50),
+    FOREIGN KEY (reportsTo) REFERENCES employees(employeeNumber)
+);
+
+INSERT INTO employees VALUES
+(1001, 'John', 'King', NULL, 'CEO'),
+(1002, 'Mary', 'Scott', 1001, 'VP'),
+(1003, 'Steve', 'Brown', 1001, 'VP'),
+(1004, 'Robert', 'Fox', 1002, 'Manager'),
+(1005, 'Linda', 'Green', 1002, 'Manager'),
+(1006, 'James', 'White', 1004, 'Sales Rep'),
+(1007, 'Patricia', 'Black', 1004, 'Sales Rep'),
+(1008, 'Michael', 'Gray', 1005, 'Sales Rep');
+
+select * from employees;
+WITH RECURSIVE emp_tree AS (
+    -- Anchor (CEO)
+    SELECT
+        employeeNumber,
+        CONCAT(firstName, ' ', lastName) AS fullName,
+        reportsTo,
+        0 AS level
+    FROM employees
+    WHERE reportsTo IS NULL
+
+    UNION ALL
+
+    -- Recursive (subordinates)
+    SELECT
+        e.employeeNumber,
+        CONCAT(e.firstName, ' ', e.lastName),
+        e.reportsTo,
+        et.level + 1
+    FROM employees e
+    JOIN emp_tree et
+        ON e.reportsTo = et.employeeNumber
+)
+SELECT *
+FROM emp_tree
+ORDER BY level, employeeNumber;
+
+
+WITH RECURSIVE emp_subtree AS (
+    SELECT employeeNumber, firstName, lastName, reportsTo
+    FROM employees
+    WHERE employeeNumber = 1002
+
+    UNION ALL
+
+    SELECT e.employeeNumber, e.firstName, e.lastName, e.reportsTo
+    FROM employees e
+    JOIN emp_subtree es
+        ON e.reportsTo = es.employeeNumber
+)
+SELECT * FROM emp_subtree;
+
+*/
+
+

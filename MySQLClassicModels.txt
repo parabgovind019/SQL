@@ -2507,3 +2507,191 @@ SELECT * FROM emp_subtree;
 */
 
 
+/*
+MySQL Triggers
+In MySQL, a trigger is a stored program invoked automatically in response to an event such as insert, update, or delete that occurs in the associated table. For example, you can define a trigger that is invoked automatically before a new row is inserted into a table.
+
+MySQL supports triggers that are invoked in response to the INSERT, UPDATE or DELETE event.
+
+The SQL standard defines two types of triggers: row-level triggers and statement-level triggers.
+
+A row-level trigger is activated for each row that is inserted, updated, or deleted. For example, if a table has 100 rows inserted, updated, or deleted, the trigger is automatically invoked 100 times for the 100 rows affected.
+A statement-level trigger is executed once for each transaction regardless of how many rows are inserted, updated, or deleted.
+MySQL supports only row-level triggers. It doesn’t support statement-level triggers.
+
+Advantages of triggers
+Triggers provide another way to check the integrity of data.
+Triggers handle errors from the database layer.
+Triggers give an alternative way to run scheduled tasks. By using triggers, you don’t have to wait for the scheduled events to run because the triggers are invoked automatically before or after a change is made to the data in a table.
+Triggers can be useful for auditing the data changes in tables.
+
+Disadvantages of triggers
+Triggers can only provide extended validations, not all validations. For simple validations, you can use the NOT NULL, UNIQUE, CHECK and FOREIGN KEY constraints.
+Triggers can be difficult to troubleshoot because they execute automatically in the database, which may not be visible to the client applications.
+Triggers may increase the overhead of the MySQL server.
+*/
+
+use classicmodels;
+
+create table items(
+id int primary key,
+name varchar(255) not null,
+price decimal(10,2) not null
+);
+
+INSERT INTO items(id, name, price) VALUES (1, 'Item', 50.00);
+select * from items;
+
+CREATE TABLE item_changes (
+    change_id INT PRIMARY KEY AUTO_INCREMENT,
+    item_id INT,
+    change_type VARCHAR(10),
+    change_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (item_id) REFERENCES items(id)
+);
+delimiter //
+create trigger on_update_items 
+after update 
+on items 
+for each row 
+begin
+insert into item_changes(item_id, change_type) values (new.id,"Update");
+end;
+//
+delimiter ;
+
+update items set price = 100.00 where id = 1;
+select * from items;
+select * from item_changes;
+-- set foreign_key_checks = 0;
+-- drop table items;
+-- drop table item_changes;
+-- set foreign_key_checks = 1;
+
+
+drop trigger if exists on_update_items;
+show triggers;
+
+
+DROP TABLE IF EXISTS WorkCenters;
+
+CREATE TABLE WorkCenters (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    capacity INT NOT NULL
+);
+
+DROP TABLE IF EXISTS WorkCenterStats;
+
+CREATE TABLE WorkCenterStats(
+    totalCapacity INT NOT NULL
+);
+
+-- drop trigger update_capacity;
+delimiter //
+create trigger update_capacity 
+before insert 
+on WorkCenters 
+for each row 
+begin 
+declare rowcount int;
+select count(*) into rowcount from WorkCenterStats;
+if rowcount > 0 then
+	update WorkCenterStats set totalCapacity = totalCapacity + new.capacity;
+else
+	insert into WorkCenterStats (totalCapacity) values (new.capacity);
+end if;
+end;
+//
+delimiter ;
+
+insert into WorkCenters (id,name,capacity) values (1, "Amazon",100);
+insert into WorkCenters (id,name,capacity) values (2, "Google",500);
+
+select * from WorkCenters;
+select * from WorkCenterStats;
+
+
+DROP TABLE IF EXISTS members;
+
+CREATE TABLE members (
+    id INT AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255),
+    birthDate DATE,
+    PRIMARY KEY (id)
+);
+DROP TABLE IF EXISTS reminders;
+
+CREATE TABLE reminders (
+    id INT AUTO_INCREMENT,
+    memberId INT,
+    message VARCHAR(255) NOT NULL,
+    PRIMARY KEY (id,memberId)
+);
+drop trigger update_missing_birthdate;
+delimiter $$
+create trigger update_missing_birthdate 
+after insert 
+on members 
+for each row 
+begin
+if new.birthDate is Null then 
+	insert into reminders (memberId,message) values (new.id, concat("Hii ",new.name," Please update your birthdate"));
+end if;
+end;
+$$
+delimiter ;
+
+INSERT INTO members(name, email, birthDate)
+VALUES ('John Doe', 'john.doe@example.com', NULL), ('Jane Doe', 'jane.doe@example.com','2000-01-01');
+select * from members;
+select * from reminders;
+
+
+/*
+SHOW TRIGGERS
+[{FROM | IN} database_name]
+[LIKE 'pattern' | WHERE search_condition];
+*/
+
+
+DROP TABLE IF EXISTS Salaries;
+
+CREATE TABLE Salaries (
+    employeeNumber INT PRIMARY KEY,
+    validFrom DATE NOT NULL,
+    amount DEC(12 , 2 ) NOT NULL DEFAULT 0
+);
+INSERT INTO salaries(employeeNumber,validFrom,amount)
+VALUES
+    (1002,'2000-01-01',50000),
+    (1056,'2000-01-01',60000),
+    (1076,'2000-01-01',70000);
+
+DROP TABLE IF EXISTS SalaryArchives;    
+
+CREATE TABLE SalaryArchives (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    employeeNumber INT,
+    validFrom DATE NOT NULL,
+    amount DEC(12 , 2 ) NOT NULL DEFAULT 0,
+    deletedAt TIMESTAMP DEFAULT NOW()
+);
+DELIMITER $$
+
+CREATE TRIGGER before_salaries_delete
+BEFORE DELETE
+ON salaries FOR EACH ROW
+BEGIN
+    INSERT INTO SalaryArchives(employeeNumber,validFrom,amount)
+    VALUES(OLD.employeeNumber,OLD.validFrom,OLD.amount);
+END$$    
+
+DELIMITER ;
+DELETE FROM salaries WHERE employeeNumber = 1002;
+SELECT * FROM SalaryArchives;    
+DELETE FROM salaries;
+SELECT * FROM SalaryArchives;
+
+

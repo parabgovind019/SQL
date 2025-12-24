@@ -2695,3 +2695,212 @@ DELETE FROM salaries;
 SELECT * FROM SalaryArchives;
 
 
+use classicmodels;
+select customerNumber, checkNumber, paymentDate, amount 
+from customers inner join payments using(customerNumber);
+
+create or replace view salePerOrder  as 
+select orderNumber, sum(quantityOrdered*priceEach) as total 
+from orderDetails 
+group by orderNumber 
+order by total desc;
+
+select * from salePerOrder;
+show tables;
+show full tables;
+
+create or replace view bigSalesOrder as 
+select orderNumber, round(total,2) as total 
+from salePerOrder where total > 60000;
+
+select * from bigSalesOrder;
+
+select * from customers;
+select * from orders;
+select * from orderDetails;
+
+create or replace view customerOrders as
+select customerNumber, orderNumber, sum(quantityOrdered*priceEach) as total 
+from orders inner join orderDetails using (orderNumber) inner join customers using (customerNumber)
+group by orderNumber order by total;
+
+select * from customerOrders;
+
+select * from products;
+
+create or replace view aboveAvgProducts as 
+select productCode, productName, buyPrice 
+from products where buyPrice > (select avg(buyPrice) from products) order by buyPrice;
+
+select * from aboveAvgProducts;
+create or replace view customerOrderStats (CustomerName, OrderCount) as
+select customerName, count(*) from customers inner join orders using (customerNumber) group by customerName;
+
+select * from customerOrderStats;
+
+show full tables where table_type = 'VIEW';
+
+SELECT table_name view_name
+FROM information_schema.tables 
+WHERE table_type   = 'VIEW' AND table_schema = 'classicmodels' AND table_name   LIKE 'customer%';
+
+SHOW FULL TABLES FROM sys LIKE 'waits%';
+
+show create view aboveAvgProducts;
+
+rename table aboveAvgProducts to productsAboveAvg;
+select * from productsAboveAvg;
+
+drop view if exists productsAboveAvg;
+show full tables;
+/*
+In MySQL, views are not only queryable but also updatable. This implies that you can use the INSERT or UPDATE statement to add or modify rows of the base table through the updatable view.
+
+Additionally, you can use the DELETE statement to remove rows of the underlying table via the view.
+
+However, to create an updatable view, the SELECT statement defining the view must not contain any of the following elements:
+
+Aggregate functions such as MIN, MAX, SUM, AVG, and COUNT.
+DISTINCT
+GROUP BY clause.
+HAVING clause.
+UNION or UNION ALL clause.
+Left join or outer join.
+Subquery in the SELECT clause or in the WHERE clause that refers to the table appeared in the FROM clause.
+Reference non-updatable views in the FROM clause.
+Use literal values.
+Multiple references to any column of the base table.
+If you create a view with the TEMPTABLE algorithm, the view is not updatable.
+
+Note that it is possible to create updatable views based on multiple tables using an inner join.
+*/
+select * from offices;
+create or replace view officeCodePhone as 
+select officeCode, phone from offices;
+
+select * from officeCodePhone;
+
+UPDATE officeCodePhone 
+SET phone = '+33 14 723 5555'
+WHERE officeCode = 4;
+
+select * from offices;
+select * from officeCodePhone;
+
+SELECT table_name, is_updatable
+FROM information_schema.views
+WHERE table_schema = 'classicmodels';
+
+CREATE TABLE items1 (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    price DECIMAL(11 , 2 ) NOT NULL
+);
+
+INSERT INTO items1(name,price) 
+VALUES('Laptop',700.56),('Desktop',699.99),('iPad',700.50) ;
+
+CREATE VIEW LuxuryItems AS
+SELECT * FROM items1 WHERE price > 700;
+SELECT * from LuxuryItems;
+
+DELETE FROM LuxuryItems WHERE id = 3;
+SELECT * from LuxuryItems;
+SELECT * from items1;
+
+/*
+Sometimes, you create a view to reveal the partial data of a table. However, a simple view is updatable, and therefore, it is possible to update data that is not visible through the view. This update makes the view inconsistent.
+
+To ensure the consistency of the view, you use the WITH CHECK OPTION clause when you create or modify the view.
+
+The WITH CHECK OPTION is an optional clause of the CREATE VIEW statement. This WITH CHECK OPTION prevents you from updating or inserting rows that are not visible through the view.
+
+In other words, whenever you update or insert a row of the base tables through a view, MySQL ensures that the insert or update operation conforms with the definition of the view.
+*/
+
+CREATE TABLE employees(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    type VARCHAR(50) NOT NULL,
+    name VARCHAR(255) NOT NULL
+);
+
+INSERT INTO employees (type, name) 
+VALUES
+('Full-time', 'John Doe'),
+('Contractor', 'Jane Smith'),
+('Temp', 'Alice Johnson'),
+('Full-time', 'Bob Anderson'),
+('Contractor', 'Charlie Brown'),
+('Temp', 'David Lee'),
+('Full-time', 'Eva Martinez'),
+('Contractor', 'Frank White'),
+('Temp', 'Grace Taylor'),
+('Full-time', 'Henry Walker'),
+('Contractor', 'Ivy Davis'),
+('Temp', 'Jack Turner'),
+('Full-time', 'Kelly Harris'),
+('Contractor', 'Leo Wilson'),
+('Temp', 'Mia Rodriguez'),
+('Full-time', 'Nick Carter'),
+('Contractor', 'Olivia Clark'),
+('Temp', 'Pauline Hall'),
+('Full-time', 'Quincy Adams');
+
+SELECT * FROM employees;
+
+CREATE OR REPLACE VIEW contractors 
+AS 
+SELECT id, type, name 
+FROM employees 
+WHERE type = 'Contractor';
+
+select * from Contractors;
+
+INSERT INTO contractors(name, type) VALUES('Andy Black', 'Contractor');
+INSERT INTO contractors(name, type) VALUES('Richa Black', 'Full-time');
+select * from Contractors;
+-- The problem is that you can add an employee with other types such as Full-time into the employees table via the contractors view.
+-- This statement successfully inserts a new row that is not visible via the contractors view into the employees table.
+
+-- To prevent this, you need to add the WITH CHECK OPTION clause to the CREATE OR REPLACE VIEW statement like this:
+
+CREATE OR REPLACE VIEW contractors 
+AS 
+SELECT id, type, name 
+FROM employees 
+WHERE type = 'Contractor'
+WITH CHECK OPTION;
+
+-- INSERT INTO contractors(name, type) VALUES('Brad Knox', 'Full-time'); -- now this will give you error
+
+create table t1 (c int);
+CREATE OR REPLACE VIEW v1 AS SELECT c FROM t1 WHERE c > 10;
+insert into v1 (c) values (5);
+select * from t1;
+create or replace view v2 as select c from v1 with cascaded check option;
+-- insert into v2 (c) values (5); -- It fails the new row that does not conform with the definition of v2 view.
+create or replace view v3 as select c from v2;
+-- INSERT INTO v3(c) VALUES (8); -- The insert statement fails even though the row seems to conform with the definition of the v3 view.
+-- Because the view v3 is dependent on the v2 view, and the v2 view has the option WITH CASCADED CHECK OPTION.
+insert into v2 (c) values (50);
+select * from t1;
+
+create table t1 (c int);
+CREATE OR REPLACE VIEW v1 AS SELECT c FROM t1 WHERE c > 10;
+insert into v1 (c) values (5);
+select * from t1;
+create or replace view v2 as select c from v1 with local check option;
+insert into v2 (c) values (5); 
+-- It succeeded.
+-- Because v2 view does not have any rules. The view v2 is dependent on the v1 view. However, v1 view does not specify a check option, therefore, MySQL skips checking the rules in v1 view.
+-- Notice that this statement failed in the v2 view created with a WITH CASCADED CHECK OPTION.
+
+create or replace view v3 as select c from v2;
+INSERT INTO v3(c) VALUES (8); 
+-- It succeeds in this case because MySQL did not check the rules of v1 view due to the WITH LOCAL CHECK OPTION of the v2 view.
+-- Also, notice that this statement failed in the example that v2 created with a WITH CASCADED CHECK OPTION.
+select * from t1;
+
+-- It is different from the view that uses a WITH CASCADED CHECK OPTION that MySQL checks the rules of all dependent views.
+-- default is cascaded
+

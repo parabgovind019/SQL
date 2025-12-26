@@ -103,3 +103,79 @@ from Signups s left join Confirmations c on s.user_id = c.user_id
 group by s.user_id;
 
 --------------------------------------------------------------------------
+
+620
+# Write your MySQL query statement below
+select * from Cinema where id % 2 != 0 and description != 'boring' order by rating desc;
+
+--------------------------------------------------------------------------
+
+1251
+# Write your MySQL query statement below
+select p.product_id, ifnull(round(sum(u.units*p.price)/sum(u.units),2),0) as average_price 
+from Prices p left join UnitsSold u on p.product_id = u.product_id 
+and u.purchase_date between p.start_date and p.end_date 
+group by p.product_id;
+
+--------------------------------------------------------------------------
+
+1075
+# Write your MySQL query statement below
+select p.project_id, round(sum(e.experience_years)/count(e.employee_id),2) as average_years 
+from Project p inner join Employee e on p.employee_id = e.employee_id 
+group by p.project_id;
+
+--------------------------------------------------------------------------
+
+1633
+# Write your MySQL query statement below
+SELECT contest_id, ROUND(100*COUNT(DISTINCT user_id)/(SELECT COUNT(*) FROM Users),2) AS percentage
+FROM Register
+GROUP BY contest_id
+ORDER BY percentage DESC, contest_id ASC;
+
+
+--------------------------------------------------------------------------
+
+1211
+# Write your MySQL query statement below
+select 
+q.query_name, 
+round(sum(q.rating/q.position)/ count(*),2) as quality, 
+round(100*(select count(*) from Queries where rating < 3 and query_name = q.query_name)/count(*),2) as poor_query_percentage 
+from Queries q 
+group by query_name;
+
+--------------------------------------------------------------------------
+
+1193
+# Write your MySQL query statement below
+select 
+date_format(trans_date,'%Y-%m') as month,
+country, 
+count(*) as trans_count, 
+sum(if(state='approved',1,0)) as approved_count ,
+sum(amount) as trans_total_amount,
+sum(if(state='approved',amount,0)) as approved_total_amount 
+from Transactions 
+group by month, country;
+
+--------------------------------------------------------------------------
+
+550
+# Write your MySQL query statement below
+SELECT ROUND(COUNT(player_id) / (SELECT COUNT(DISTINCT player_id) FROM Activity), 2) AS fraction
+FROM Activity
+WHERE (player_id, DATE_SUB(event_date, INTERVAL 1 DAY)) 
+IN (
+SELECT player_id, MIN(event_date) AS first_login FROM Activity GROUP BY player_id
+);
+
+--------------------------------------------------------------------------
+
+1174
+# Write your MySQL query statement below
+select round(100*sum(if(order_date = customer_pref_delivery_date,1,0))/count(customer_id),2) as immediate_percentage from Delivery 
+where (customer_id, order_date) in (select customer_id, min(order_date) from Delivery group by customer_id)
+
+--------------------------------------------------------------------------

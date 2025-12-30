@@ -308,3 +308,78 @@ order by visited_on
 limit 100000 offset 6;
 
 --------------------------------------------------------------------------
+
+1907
+SELECT 'Low Salary' AS category,
+       SUM(income < 20000) AS accounts_count
+FROM Accounts
+
+UNION ALL
+
+SELECT 'Average Salary',
+       SUM(income BETWEEN 20000 AND 50000)
+FROM Accounts
+
+UNION ALL
+
+SELECT 'High Salary',
+       SUM(income > 50000)
+FROM Accounts;
+
+--------------------------------------------------------------------------
+
+1204
+# Write your MySQL query statement below
+select temp.person_name from (select *, sum(weight) over(order by turn) as total_weight from Queue order by turn) as temp where temp.total_weight <= 1000 order by turn desc limit 1;
+
+--------------------------------------------------------------------------
+
+1731
+# Write your MySQL query statement below
+select e1.employee_id, e1.name, count(e2.reports_to) as reports_count, round(avg(e2.age)) as average_age
+from Employees e1 inner join Employees e2 on e1.employee_id = e2.reports_to
+group by e1.employee_id 
+order by e1.employee_id;
+
+--------------------------------------------------------------------------
+
+1789
+# Write your MySQL query statement below
+select employee_id , department_id 
+from Employee 
+where primary_flag = 'Y' or employee_id in (select employee_id from Employee group by employee_id having count(*) = 1);
+
+--------------------------------------------------------------------------
+
+610
+# Write your MySQL query statement below
+select x , y , z , 
+case 
+    when (x + y) > z and (y + z) > x and (x + z) > y then 'Yes'
+    else 'No'
+end as triangle 
+from Triangle;
+
+--------------------------------------------------------------------------
+
+180
+# Write your MySQL query statement below
+select distinct l1.num as ConsecutiveNums 
+from Logs l1 inner join Logs l2 on l1.id = l2.id-1 and l1.num = l2.num 
+inner join Logs l3 on l2.id = l3.id-1 and l2.num = l3.num;
+
+select distinct temp.num as ConsecutiveNums 
+from (select num, lag(num) over (order by id) as 'prev', lead(num) over (order by id) as 'next' from Logs) as temp
+where temp.num = temp.prev and temp.num = temp.next;
+
+--------------------------------------------------------------------------
+
+1164
+# Write your MySQL query statement below
+select 
+p1.product_id, 
+coalesce((select p2.new_price from Products p2 where p2.product_id = p1.product_id and p2.change_date <= cast('2019-08-16' as date) order by p2.change_date desc limit 1),10) as price 
+from Products p1 
+group by product_id;
+
+--------------------------------------------------------------------------

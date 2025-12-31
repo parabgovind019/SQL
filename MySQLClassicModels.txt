@@ -2904,3 +2904,106 @@ select * from t1;
 -- It is different from the view that uses a WITH CASCADED CHECK OPTION that MySQL checks the rules of all dependent views.
 -- default is cascaded
 
+
+-- regular expression
+SELECT 'MySQL 8' REGEXP '\\d+';
+SELECT 'MySQL' REGEXP '\\d+';
+-- same as regexp
+SELECT 'MySQL 8' RLIKE '\\d+';
+SELECT REGEXP_INSTR('MySQL 8.0 Release', '\\d+') position; -- returns pos of substring that match the expression
+SELECT REGEXP_SUBSTR('MySQL 8.0 Release', '\\d+') version; -- returns the substring that you specified in the expression
+SELECT REGEXP_REPLACE("MySQL 8 Release",'\\d+',9) repacedVersion -- return the replaced value for the spedcified match
+
+/*
+
+Character class		Description
+\d			matches a single digit from 0 to 9.
+\w			matches a word character set that includes alphabet, digit, and underscore.
+\s			matches a whitespace including a space, a tab a new line, a carriage return, and a vertical tab.
+
+Each character class has an inverse character class. For example, \D matches a single character except a digit. Similarly, \W matches a single character that is not a word character and \S matches a single character except whitespace.
+*/
+
+/*
+The anchors match the character’s position. The anchors include ^ which matches the beginning of a string and $ which matches the end of a string.
+For example, ^\d match a digit at the beginning of a string. It’ll match the number 1 in the string ‘1 dolphin’.
+*/
+/*
+
+Quantifier	Description
+*		Matches zero or more occurrences of the preceding character or class.
++		Matches one or more occurrences of the preceding character or class.
+?		Matches zero or one occurrence of the preceding character or class.
+{n}		Matches exactly n occurrences of the preceding character or class.
+{n,}		Matches n or more occurrences of the preceding character or class.
+{n,m}		Matches between n and m occurrences of the preceding character or class.
+
+*/
+
+SELECT 'MySQL 8.0' REGEXP '\\d\.\\d';
+
+
+SELECT REGEXP_INSTR('1936 Mercedes-Benz 500K Special Roadster', '\\d+') position; -- regular
+SELECT REGEXP_INSTR('1936 Mercedes-Benz 500K Special Roadster', '\\d+', 5) position; -- with pos parameter
+SELECT REGEXP_INSTR('1936 Mercedes-Benz 500K Special Roadster', '\\d+', 1, 1) first_match, REGEXP_INSTR('1936 Mercedes-Benz 500K Special Roadster', '\\d+', 1, 2) second_match; -- with pos and occurance parameter
+/*
+For example, REGEXP_INSTR returns 1 for the match 1936 because the first digit 1 in 1936 has the position of 1 in the input string.
+If you want to get the position after the digit 6 of the substring, you can change the return_option to 1
+*/
+SELECT REGEXP_INSTR('1936 Mercedes-Benz 500K Special Roadster', '\\d+', 1, 1, 1) first_match; -- with pos, occuarance and return parameter 
+-- By default, the REGEXP matches case-insensitively. If you want to match a pattern case-sensitively, you can use the match_type option 'c':
+
+SELECT REGEXP_INSTR('1936 Mercedes-Benz 500K Special Roadster', '\\d+k', 1, 1, 1, 'c') position;
+SELECT REGEXP_INSTR('1936 Mercedes-Benz 500K Special Roadster', '\\d+K', 1, 1, 1, 'c') position;
+
+select * from products;
+select productName from products where productName regexp '196\\d';
+select productName from products where productName regexp '^196';
+SELECT productName 
+FROM products 
+WHERE REGEXP_INSTR(productName, '\\d{4}') > 0;
+
+/*
+ALTER TABLE 
+  contacts 
+ADD 
+  CONSTRAINT email_validation CHECK (
+     REGEXP_LIKE(email, "^\\S+@\\S+\\.\\S+$") = 1
+  );
+*/
+
+SELECT REGEXP_LIKE("MySQL 8","\\d+\\.\\d+");
+
+/*
+REGEXP_REPLACE(
+   string, 
+   pattern, 
+   replacement, 
+   position,  
+   occurrence, 
+   match_type
+)
+*/
+
+/*
+REGEXP_SUBSTR (
+    string, 
+    pattern, 
+    position, 
+    occurrence, 
+    match_type
+)
+*/
+
+SELECT REGEXP_SUBSTR('3 apples weighs 400 grams ', '\\d+', 2) weight; -- from pos 2
+SELECT REGEXP_SUBSTR('3 apples weighs 400 grams ', '\\d+',1,2) weight; -- from pos 1 and occurance second
+
+SELECT 
+  productName, 
+  REGEXP_SUBSTR(productName, '\\d{4}') year 
+FROM 
+  products 
+WHERE 
+  REGEXP_SUBSTR(productName, '\\d{4}') IS NOT NULL;
+
+

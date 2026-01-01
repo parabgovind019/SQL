@@ -3007,3 +3007,526 @@ WHERE
   REGEXP_SUBSTR(productName, '\\d{4}') IS NOT NULL;
 
 
+-- Windows Function
+/*
+1. FROM
+2. JOIN
+3. WHERE
+4. GROUP BY
+5. HAVING
+6. WINDOW FUNCTIONS (OVER clause)
+7. SELECT
+8. SELECT DISTINCT
+9. ORDER BY
+10. LIMIT / OFFSET
+*/
+
+/*
+window_function_name(expression) OVER ( 
+   [partition_defintion]
+   [order_definition]
+   [frame_definition]
+)
+*/
+
+CREATE TABLE sales(
+    id int auto_increment,
+    sales_employee VARCHAR(50) NOT NULL,
+    fiscal_year INT NOT NULL,
+    sale DECIMAL(14,2) NOT NULL,
+    PRIMARY KEY(id,sales_employee,fiscal_year)
+);
+
+INSERT INTO sales(sales_employee,fiscal_year,sale)
+VALUES('Bob',2016,100),
+      ('Bob',2017,150),
+      ('Bob',2018,200),
+      ('Alice',2016,150),
+      ('Alice',2017,100),
+      ('Alice',2018,200),
+       ('John',2016,200),
+      ('John',2017,150),
+      ('John',2018,250);
+
+SELECT * FROM sales;
+-- select sum(sale) from sales;
+-- select fiscal_year, sum(sale) from sales group by fiscal_year;
+-- select fiscal_year, sales_employee, sale, sum(sale) over(partition by fiscal_year) as total_sales from sales;
+-- select fiscal_year, sales_employee, sale, sum(sale) over(order by id) as total_sales from sales;
+
+CREATE TABLE scores (
+    name VARCHAR(20) PRIMARY KEY,
+    score INT NOT NULL
+);
+
+INSERT INTO
+	scores(name, score)
+VALUES
+	('Smith',81),
+	('Jones',55),
+	('Williams',55),
+	('Taylor',62),
+	('Brown',62),
+	('Davies',84),
+	('Evans',87),
+	('Wilson',72),
+	('Thomas',72),
+	('Johnson',100);
+	
+-- select * from scores;
+-- select name, score, row_number() over(order by score) as rownum from scores;
+select name, score, row_number() over (order by score) as rownum, cume_dist() over(order by score) as cume_dist_val from scores;
+
+CREATE TABLE t (val INT);
+
+INSERT INTO t(val) VALUES(1),(2),(2),(3),(4),(4),(5),(8),(9);
+
+select * from t;
+select val, dense_rank() over(order by val) as ranks from t;
+
+CREATE TABLE sales(
+    sales_employee VARCHAR(50) NOT NULL,
+    fiscal_year INT NOT NULL,
+    sale DECIMAL(14,2) NOT NULL,
+    PRIMARY KEY(sales_employee,fiscal_year)
+);
+
+INSERT INTO sales(sales_employee,fiscal_year,sale)
+VALUES('Bob',2016,100),
+      ('Bob',2017,150),
+      ('Bob',2018,200),
+      ('Alice',2016,150),
+      ('Alice',2017,100),
+      ('Alice',2018,200),
+       ('John',2016,200),
+      ('John',2017,150),
+      ('John',2018,250);
+
+SELECT * FROM sales;
+select fiscal_year, sales_employee, sale, dense_rank() over(partition by fiscal_year order by sale desc, sales_employee asc) as ranks from sales;
+
+CREATE TABLE overtime (
+    employee_name VARCHAR(50) NOT NULL,
+    department VARCHAR(50) NOT NULL,
+    hours INT NOT NULL,
+    PRIMARY KEY (employee_name , department)
+);
+INSERT INTO overtime(employee_name, department, hours)
+VALUES('Diane Murphy','Accounting',37),
+('Mary Patterson','Accounting',74),
+('Jeff Firrelli','Accounting',40),
+('William Patterson','Finance',58),
+('Gerard Bondur','Finance',47),
+('Anthony Bow','Finance',66),
+('Leslie Jennings','IT',90),
+('Leslie Thompson','IT',88),
+('Julie Firrelli','Sales',81),
+('Steve Patterson','Sales',29),
+('Foon Yue Tseng','Sales',65),
+('George Vanauf','Marketing',89),
+('Loui Bondur','Marketing',49),
+('Gerard Hernandez','Marketing',66),
+('Pamela Castillo','SCM',96),
+('Larry Bott','SCM',100),
+('Barry Jones','SCM',65);
+
+select * from overtime;
+-- over whole resultset
+select employee_name, hours, first_value(employee_name) over(order by hours asc) as least_hours_spender from overtime;
+-- over each department
+select employee_name, department, hours, first_value(employee_name) over(partition by department order by hours) as least_hours_spender_in_each_dept from overtime;
+
+CREATE TABLE sales ( sale_date DATE, product VARCHAR(20), amount INT);
+
+INSERT INTO sales VALUES ('2024-01-01', 'Laptop', 1000), ('2024-01-02', 'Laptop', 1200),
+('2024-01-03', 'Laptop', 900),('2024-01-04', 'Laptop', 1500),('2024-01-05', 'Laptop', 1100);
+
+select * from sales order by sale_date;
+-- this is right because default behaviour withou explaict frame is (RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+-- MySQL calculates LAST_VALUE only up to the current row, not the full partition.
+select sale_date, product, amount, last_value(amount) over(order by sale_date) as last_val from sales;
+-- To get the true last value in the window, you must expand the frame.
+select sale_date, product, amount, last_value(amount) over(order by sale_date ROWS BETWEEN UNBOUNDED PRECEDING and UNBOUNDED Following) as last_val from sales;
+
+CREATE TABLE sales2 (sale_date DATE, product VARCHAR(20), amount INT);
+INSERT INTO sales2 VALUES('2024-01-01', 'Laptop', 1000),('2024-01-02', 'Laptop', 1200),('2024-01-01', 'Mobile', 500),('2024-01-02', 'Mobile', 700);
+select sale_date, product, amount, last_value(amount) over(partition by product order by amount rows between UNBOUNDED PRECEDING and UNBOUNDED Following) as last_val from sales2;
+
+CREATE TABLE transactions (tx_id INT, tx_date DATE, amount INT);
+INSERT INTO transactions VALUES (1, '2024-01-01', 100),(2, '2024-01-02', 200),(3, '2024-01-02', 300),(4, '2024-01-03', 400),(5, '2024-01-04', 500);
+SELECT * FROM transactions ORDER BY tx_date, tx_id;
+-- difference between row and range
+select *, sum(amount) over(order by tx_id rows between 1 preceding and current row) as row_sums from transactions;
+SELECT tx_id,tx_date,amount,SUM(amount) OVER (ORDER BY tx_date RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS range_sum FROM transactions;
+-- RANGE includes ALL rows with same ORDER BY value
+-- So both 200 + 300 counted together
+-- | Frame | Behavior                             |
+-- | ----- | ------------------------------------ |
+-- | ROWS  | Treats each row separately           |
+-- | RANGE | Groups rows with same ORDER BY value |
+
+
+use classicmodels;
+select * from products;
+select row_number() over(order by productName) as row_num, productName, msrp from products;
+-- find the top three products by product line that have the highest inventory:
+with cte as (select productLine, productName, quantityInStock, row_number() over(partition by productLine order by quantityInStock desc) as rownum from products)
+select rownum, productLine, productName, quantityInStock from cte where rownum <= 3;
+
+CREATE TABLE t (id INT AUTO_INCREMENT PRIMARY KEY,name VARCHAR(10) NOT NULL);
+
+INSERT INTO t(name) VALUES('A'),('B'),('B'),('C'),('C'),('C'),('D');
+
+SELECT * FROM t;
+
+select id, name, row_number() over(partition by name order by id) as row_num from t;
+
+with cte as (select id, name, row_number() over(partition by name order by id) as row_num from t)
+delete t from t inner join cte on t.id = cte.id and cte.row_num > 1;
+
+select * from t;
+
+
+SELECT * 
+FROM 
+(SELECT productName, msrp, row_number() OVER (order by msrp) as row_num FROM products) t 
+WHERE row_num BETWEEN 11 AND 20;
+
+CREATE TABLE t (val INT);
+
+INSERT INTO t(val)VALUES(1),(2),(2),(3),(4),(4),(5);
+
+SELECT val, rank() over(order by val asc) as ranks from t;
+
+CREATE TABLE IF NOT EXISTS sales(
+    sales_employee VARCHAR(50) NOT NULL,
+    fiscal_year INT NOT NULL,
+    sale DECIMAL(14,2) NOT NULL,
+    PRIMARY KEY(sales_employee,fiscal_year)
+);
+ 
+INSERT INTO sales(sales_employee,fiscal_year,sale)
+VALUES('Bob',2016,100),
+      ('Bob',2017,150),
+      ('Bob',2018,200),
+      ('Alice',2016,150),
+      ('Alice',2017,100),
+      ('Alice',2018,200),
+       ('John',2016,200),
+      ('John',2017,150),
+      ('John',2018,250);
+ 
+SELECT * FROM sales;
+
+-- rank the sales employees by sales amount every year:
+select fiscal_year, sales_employee, sale, rank() over(partition by fiscal_year order by sale desc) as ranks from sales;
+
+
+CREATE TABLE sales (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    sale_date DATE,
+    employee VARCHAR(50),
+    amount INT
+);
+INSERT INTO sales (sale_date, employee, amount) VALUES
+('2024-01-01', 'Amit', 100),
+('2024-01-02', 'Amit', 150),
+('2024-01-03', 'Amit', 130),
+('2024-01-01', 'Ravi', 200),
+('2024-01-02', 'Ravi', 180),
+('2024-01-03', 'Ravi', 220);
+
+-- select id, sale_date, employee, amount, lag(amount) over(order by id asc) as prev_amount from sales;
+-- select id, sale_date, employee, amount, lag(amount,1,0) over(order by id asc) as prev_amount from sales; -- default value
+-- select id, sale_date, employee, amount, lag(amount,2,0) over(order by id asc) as prev_amount from sales; -- looking two rows back
+-- select id, sale_date, employee, amount, lag(amount) over(partition by employee order by id asc) as prev_amount from sales;
+-- select id, sale_date, employee, amount, amount - lag(amount) over(order by id asc) as diff_amount from sales;
+-- select id, sale_date, employee, amount, amount - lag(amount) over(partition by employee order by id asc) as diff_amount from sales;
+
+
+-- select *, lead(sale) over(partition by sales_employee order by fiscal_year) as next_val from sales;
+
+CREATE TABLE productLineSales
+SELECT
+    productLine,
+    YEAR(orderDate) orderYear,
+    quantityOrdered * priceEach orderValue
+FROM
+    orderDetails
+        INNER JOIN
+    orders USING (orderNumber)
+        INNER JOIN
+    products USING (productCode)
+GROUP BY
+    productLine ,
+    YEAR(orderDate), 
+    orderValue;
+
+
+SELECT
+    productLine,
+    orderYear,
+    orderValue,
+    ROUND(
+    PERCENT_RANK()
+    OVER (
+        PARTITION BY orderYear
+        ORDER BY orderValue
+    ),2) percentile_rank
+FROM
+    productLineSales;
+
+
+/*
+NTH_VALUE(expression, N)
+FROM FIRST
+OVER (
+    partition_clause
+    order_clause
+    frame_clause
+)
+
+Note that SQL standard supports both FROM FIRST and FROM LAST. 
+However, MySQL only supports FROM FIRST. 
+If you want to simulate the effect of FROM LAST, then you can use the ORDER BY in the over_clause to sort the result set in reverse order.
+*/
+
+-- CREATE TABLE basic_pays(
+--     employee_name VARCHAR(50) NOT NULL,
+--     department VARCHAR(50) NOT NULL,
+--     salary INT NOT NULL,
+--     PRIMARY KEY (employee_name , department)
+-- );
+
+-- INSERT INTO basic_pays(employee_name, department, salary)
+-- VALUES
+-- 	('Diane Murphy','Accounting',8435),
+-- 	('Mary Patterson','Accounting',9998),
+-- 	('Jeff Firrelli','Accounting',8992),
+-- 	('William Patterson','Accounting',8870),
+-- 	('Gerard Bondur','Accounting',11472),
+-- 	('Anthony Bow','Accounting',6627),
+-- 	('Leslie Jennings','IT',8113),
+-- 	('Leslie Thompson','IT',5186),
+-- 	('Julie Firrelli','Sales',9181),
+-- 	('Steve Patterson','Sales',9441),
+-- 	('Foon Yue Tseng','Sales',6660),
+-- 	('George Vanauf','Sales',10563),
+-- 	('Loui Bondur','SCM',10449),
+-- 	('Gerard Hernandez','SCM',6949),
+-- 	('Pamela Castillo','SCM',11303),
+-- 	('Larry Bott','SCM',11798),
+-- 	('Barry Jones','SCM',10586);
+	
+-- 	select * From basic_pays;
+
+-- never use nth value for second highest or for finding between ranking values 
+-- note that it use for comparing or analytical purpose
+-- it works here because of no ties
+-- 	NTH_VALUE() function to find the employee who has the second highest salary
+-- select employee_name, department, salary, NTH_VALUE(employee_name,2) over(order by salary desc) from basic_pays;
+-- inds the employee who has the second highest salary in every department
+-- select employee_name, department, salary, NTH_VALUE(employee_name,2) over(partition by department order by salary desc range between unbounded preceding and unbounded following) from basic_pays;
+
+
+CREATE TABLE t (val INT NOT NULL);
+
+INSERT INTO t(val) VALUES(1),(2),(3),(4),(5),(6),(7),(8),(9);
+
+select val, ntile(4) over(order by val) as bucket from t;
+
+CREATE TABLE scores (
+  student VARCHAR(10),
+  subject VARCHAR(10),
+  marks INT
+);
+
+INSERT INTO scores VALUES
+('A','Math',90),
+('B','Math',80),
+('C','Math',70),
+('D','Math',60),
+('E','Math',50),
+('A','Science',95),
+('B','Science',85),
+('C','Science',75),
+('D','Science',65),
+('E','Science',55);
+
+select *, ntile(3) over(partition by subject order by marks desc) as buckets from scores;
+
+CREATE TABLE basic_pays(
+    employee_name VARCHAR(50) NOT NULL,
+    department VARCHAR(50) NOT NULL,
+    salary INT NOT NULL,
+    PRIMARY KEY (employee_name , department)
+);
+
+INSERT INTO basic_pays(employee_name, department, salary)
+VALUES
+	('Diane Murphy','Accounting',8435),
+	('Mary Patterson','Accounting',9998),
+	('Jeff Firrelli','Accounting',8992),
+	('William Patterson','Accounting',8870),
+	('Gerard Bondur','Accounting',11472),
+	('Anthony Bow','Accounting',6627),
+	('Leslie Jennings','IT',8113),
+	('Leslie Thompson','IT',5186),
+	('Julie Firrelli','Sales',9181),
+	('Steve Patterson','Sales',9441),
+	('Foon Yue Tseng','Sales',6660),
+	('George Vanauf','Sales',10563),
+	('Loui Bondur','SCM',10449),
+	('Gerard Hernandez','SCM',6949),
+	('Pamela Castillo','SCM',11303),
+	('Larry Bott','SCM',11798),
+	('Barry Jones','SCM',10586);
+	
+-- top 25%
+	
+	SELECT *
+FROM (
+  SELECT *,
+         NTILE(4) OVER (ORDER BY salary DESC) AS q
+  FROM basic_pays
+) t
+WHERE q = 1;
+
+
+/*
+This is the **right concluding question** 👍
+`RANGE` is *not bad* — it’s just **misused** a lot.
+
+Let’s answer **precisely**: **where `RANGE` is useful and correct**, and **where it is NOT**.
+
+---
+
+## One-line answer
+
+> **Use `RANGE` when your logic is value-based (logical groups), not row-based (positions).**
+
+---
+
+## What `RANGE` is GOOD at ✅
+
+### 1️⃣ Running totals by **value**, not row count
+
+(**classic & correct use**)
+
+```sql
+SELECT
+  sale_date,
+  amount,
+  SUM(amount) OVER (
+    ORDER BY sale_date
+    RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+  ) AS running_total
+FROM sales;
+```
+
+✔ All rows with the **same date** contribute together
+✔ Business meaning: “total up to this date”
+
+---
+
+### 2️⃣ Financial / time-series aggregation
+
+```sql
+SUM(price) OVER (
+  ORDER BY trade_time
+  RANGE BETWEEN INTERVAL 1 DAY PRECEDING AND CURRENT ROW
+)
+```
+
+✔ Time-based windows
+✔ Value intervals make sense
+✔ Impossible with `ROWS`
+
+---
+
+### 3️⃣ Ranking-independent analytics
+
+Functions that **don’t depend on row position**:
+
+| Function       | RANGE safe? |
+| -------------- | ----------- |
+| `SUM`          | ✅           |
+| `AVG`          | ✅           |
+| `COUNT`        | ✅           |
+| `MIN / MAX`    | ✅           |
+| `PERCENT_RANK` | ✅           |
+| `CUME_DIST`    | ✅           |
+
+Because these depend on **sets of values**, not row numbers.
+
+---
+
+### 4️⃣ Default behavior for ORDER BY
+
+```sql
+SUM(x) OVER (ORDER BY date)
+```
+
+MySQL defaults to:
+
+```sql
+RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+```
+
+This default exists **on purpose** — because it matches most business expectations.
+
+---
+
+## Where `RANGE` is BAD ❌
+
+| Use case           | Why                           |
+| ------------------ | ----------------------------- |
+| `LAST_VALUE`       | “last row” is ambiguous       |
+| `NTH_VALUE`        | Nth row undefined             |
+| Sliding N rows     | RANGE counts values, not rows |
+| Duplicate ORDER BY | Non-deterministic             |
+
+---
+
+## RANGE vs ROWS (decision table)
+
+| Question                  | Use   |
+| ------------------------- | ----- |
+| “Up to this **value**”    | RANGE |
+| “Last **N rows**”         | ROWS  |
+| “Ties should behave same” | RANGE |
+| “Exact position matters”  | ROWS  |
+
+---
+
+## Mental model (lock this in)
+
+> 🧠 **RANGE = business logic**
+> 🧠 **ROWS = technical logic**
+
+---
+
+## One perfect example (exam-ready)
+
+### Problem
+
+> “Show total sales up to each date”
+
+### Correct answer
+
+```sql
+SUM(amount) OVER (
+  ORDER BY sale_date
+  RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+)
+```
+
+Using `ROWS` here would be **wrong** if dates repeat.
+
+---
+
+## Final takeaway (one line)
+
+> **Use `RANGE` when your window is defined by *values*; use `ROWS` when it’s defined by *positions*.**
+
+*/

@@ -4310,3 +4310,99 @@ CALL salary_check(300);
 
 
 
+use classicmodels;
+
+-- In MySQL, a cursor is a database object used for iterating the result of a SELECT statement.
+-- Typically, you use cursors within stored procedures, triggers, and functions where you need to process individual rows returned by a query one at a time.
+
+/*
+-- declare a cursor
+DECLARE cursor_name CURSOR FOR 
+SELECT column1, column2 
+FROM your_table 
+WHERE your_condition;
+
+-- open the cursor
+OPEN cursor_name;
+
+FETCH cursor_name INTO variable1, variable2;
+-- process the data
+
+
+-- close the cursor
+CLOSE cursor_name;
+*/
+
+-- The cursor declaration must come after any variable declaration. 
+-- If you declare a cursor before the variable declarations, MySQL will issue an error. 
+-- Additionally, a cursor must always associate with a SELECT statement.
+
+/*
+When working with MySQL cursor, you must also declare a NOT FOUND handler to manage the situation when the cursor cannot find any row.
+Each time you call the FETCH statement, the cursor attempts to read the next row in the result set. When the cursor reaches the end of the result set, it will not be able to retrieve the data, and a condition is raised. The handler is used to handle this condition.
+To declare a NOT FOUND handler, you use the following syntax:
+DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
+*/
+
+DELIMITER $$
+
+CREATE PROCEDURE create_email_list (
+	INOUT email_list TEXT
+)
+BEGIN
+	DECLARE done BOOL DEFAULT false;
+	DECLARE email_address VARCHAR(100) DEFAULT "";
+    
+	-- declare cursor for employee email
+	DECLARE cur CURSOR FOR SELECT email FROM employees;
+
+	-- declare NOT FOUND handler
+	DECLARE CONTINUE HANDLER 
+        FOR NOT FOUND SET done = true;
+	
+    -- open the cursor
+	OPEN cur;
+	
+    SET email_list = '';
+	
+    process_email: LOOP
+		
+        FETCH cur INTO email_address;
+        
+		IF done = true THEN 
+			LEAVE process_email;
+		END IF;
+		
+        -- concatenate the email into the emailList
+		SET email_list = CONCAT(email_address,";",email_list);
+	END LOOP;
+    
+    -- close the cursor
+	CLOSE cur;
+
+END$$
+
+DELIMITER ;
+
+
+CALL create_email_list(@email_list); 
+SELECT @email_list
+
+
+
+
+use classicmodels;
+/*
+MySQL prepared statements are a feature that helps you enhance the security and performance of database queries.
+MySQL prepared statements allow you to write SQL queries with placeholders for parameters, and then bind values to those parameters at runtime. They can help prevent SQL injection attacks and optimize query execution.
+*/
+create table student(id int, name varchar(20));
+prepare ins_data from 'insert into student(id, name) values(?,?)';
+set @var1 = 1;
+set @var2 = 'Nimesh';
+execute ins_data using @var1, @var2;
+select * from student;
+drop prepare ins_data;
+
+
+

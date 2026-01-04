@@ -3881,3 +3881,173 @@ show function status where db = 'classicmodels';
 
 
 
+/*
+Events are tasks that are executed according to a schedule. Therefore, events are often referred to as scheduled events.
+
+To create a new event, you use The CREATE EVENT statement. Here’s the basic syntax of the CREATE EVENT statement:
+
+CREATE EVENT [IF NOT EXIST] event_name
+ON SCHEDULE schedule
+DO
+event_body
+In this syntax:
+
+First, specify the name of the event that you want to create after the CREATE EVENT keywords. The event names must be unique within the same database.
+
+Second, specify a schedule after the  ON SCHEDULE keywords.
+
+If the event is a one-time event, you use the syntax:
+
+AT timestamp [+ INTERVAL]
+
+If the event is a recurring event, you use the EVERY clause:
+
+EVERY interval 
+STARTS timestamp [+INTERVAL] 
+ENDS timestamp [+INTERVAL]
+
+The STARTS specifies when the event starts repeating and the ENDS specifies when the event stops repeating.
+
+Third, place an SQL statement to execute after the DO keyword.
+
+If you have multiple statements, you can use the BEGIN...END block. Please note that you can call a stored procedure inside the body of an event.
+*/
+
+
+use classicmodels;
+
+show processlist;
+
+-- SET GLOBAL event_scheduler = ON;
+-- SET GLOBAL event_scheduler = OFF;
+
+CREATE DATABASE IF NOT EXISTS mydb;
+
+USE mydb;
+
+CREATE TABLE IF NOT EXISTS messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    message VARCHAR(255) NOT NULL,
+    created_at DATETIME DEFAULT NOW()
+);
+
+create event if not exists one_time_log 
+on schedule at current_timestamp 
+do 
+insert into messages(message) values ("One - Time - Event");
+
+select * from messages;
+
+show events from mydb; -- The output shows no row because the event is automatically dropped when it expires. In this case, it is a one-time event and expires when its execution is completed.
+
+-- To keep the event after it has expired, you use the ON COMPLETION PRESERVE clause.
+create event if not exists one_time_log1
+on schedule at current_timestamp 
+on completion preserve 
+do
+insert into messages(message) values("Preserved one-time-log");
+
+select * from messages;
+
+show events; -- now it shows
+
+show events from mydb;
+
+create event if not exists one_time_log2
+on schedule at current_timestamp + interval 1 minute 
+on completion preserve 
+do
+insert into messages(message) values ("One-Time-Log 1Minute");
+
+show events from mydb;
+select * from messages;
+
+-- creating reoccuring event
+create event if not exists one_min_one_hour 
+on schedule every 1 minute
+starts current_timestamp
+ends current_timestamp + interval 1 hour
+do
+insert into messages(message) values(concat("Inserted at : ",now()));
+
+show events from mydb;
+select * from messages;
+-- SHOW EVENTS WHERE db = 'database_name' AND status = 'ENABLED';
+
+drop event if exists one_time_log1;
+drop event if exists one_time_log2;
+drop event if exists one_min_one_hour;
+show events from mydb;
+
+
+
+/*
+MySQL allows you to change various attributes of an existing event using the ALTER EVENT statement. Here’s the basic syntax of the ALTER EVENT statement:
+
+ALTER EVENT [IF EXISTS] event_name
+ON SCHEDULE schedule
+[ON COMPLETION [NOT] PRESERVE]
+[COMMENT 'comment']
+[ENABLE | DISABLE]
+DO event_body
+Code language: SQL (Structured Query Language) (sql)
+In this syntax:
+
+IF EXISTS: This optional clause prevents an error from occurring if the specified event does not exist.
+event_name: The name of the event you want to change.
+ON SCHEDULE: Specifies the new schedule for the event, including frequency, start time, and end time.
+ON COMPLETION: Indicates whether you want to preserve or drop the event after it is completed. Use PRESERVE to keep the event, and NOT PRESERVE to drop it.
+COMMENT 'comment': An optional comment describing the event.
+ENABLE | DISABLE: Allows you to enable or disable the event. Note that a disabled event will not run until you re-enable it.
+DO event_body: Specifies the new SQL statement(s) or procedure to be executed by the event.
+*/
+
+
+CREATE EVENT test_event
+ON SCHEDULE EVERY 1 MINUTE
+DO
+INSERT INTO messages(message) VALUES('Test ALTER EVENT statement');
+
+-- 1) Changing the schedule
+ALTER EVENT test_event ON SCHEDULE EVERY 2 MINUTE;
+
+-- 2) Changing the event body
+ALTER EVENT test_event
+DO
+INSERT INTO messages(message) VALUES('New message');
+
+-- 3) Disabling an event
+ALTER EVENT test_event
+DISABLE;
+
+-- 4) Enabling an event
+ALTER EVENT test_event
+ENABLE;
+
+-- 5) Renaming an event
+ALTER EVENT test_event
+RENAME TO sample_event;
+
+-- 6) Moving an event to another database
+-- ALTER EVENT mydb.sample_event
+-- RENAME TO classicmodels.test_event;
+
+/*
+CREATE PROCEDURE process_orders()
+BEGIN
+    UPDATE orders
+    SET status = 'expired'
+    WHERE status = 'pending'
+      AND updated_at < NOW() - INTERVAL 10 MINUTE;
+END;
+
+
+CREATE EVENT ev_process_orders
+ON SCHEDULE EVERY 1 MINUTE
+DO
+CALL process_orders();
+
+*/
+
+
+

@@ -3841,3 +3841,43 @@ call numberConcat();
 
 
 
+use classicmodels;
+
+drop function if exists getCustomerCreditStatus;
+delimiter $$
+create function getCustomerCreditStatus(credit int)
+returns varchar(50)
+deterministic
+begin
+declare customerLevel varchar(50);
+if credit > 50000 then
+set customerLevel = 'Platinum';
+elseif credit >10000 and credit <= 50000 then 
+set customerLevel = 'Gold';
+else 
+set customerLevel = 'Silver';
+end if;
+return customerLevel;
+end $$
+delimiter ;
+
+select customerNumber, creditLimit, getCustomerCreditStatus(creditLimit) from customers;
+
+drop procedure if exists GetCustomerLevel;
+delimiter $$
+create procedure GetCustomerLevel(in custNum int, out custLevel varchar(20))
+begin
+declare credit int;
+select creditLimit into credit from customers where customerNumber = custNum;
+set custLevel = getCustomerCreditStatus(credit);
+end $$
+delimiter ;
+
+call GetCustomerLevel(103,@level);
+select @level;
+
+
+show function status where db = 'classicmodels';
+
+
+

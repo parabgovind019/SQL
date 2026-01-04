@@ -4169,3 +4169,144 @@ SELECT * FROM transactions;
 
 
 
+-- SHOW WARNINGS to display information about errors, warnings, and notes.
+DROP TABLE IF EXISTS abc;
+SHOW WARNINGS;
+SHOW COUNT(*) WARNINGS;
+
+SELECT 
+    DATE_SUB('2017-02-29', INTERVAL - 1 DAY) d1,
+    DATE_SUB('2017-12-32', INTERVAL + 2 DAY) d2,
+    DATE_SUB('2017-15-03', INTERVAL + 5 DAY) d3;
+SHOW WARNINGS;
+SHOW WARNINGS LIMIT 2;
+
+SHOW VARIABLES LIKE 'max_error_count'; -- max num of error or notes that mysql can store on server
+
+-- show errors
+SHOW ERRORS;
+select id from products;
+SHOW ERRORS;
+SHOW COUNT(*) ERRORS;
+-- SHOW ERRORS [LIMIT [offset,] row_count];
+
+create table emp(id int, name varchar(20), salary dec(10,2));
+insert into emp(id,name,salary) values(1,"Umesh",1000),(2,"Nagesh",2000);
+
+delimiter $$
+create procedure checkData(in pid int,in psalary decimal(10,2))
+begin
+if pid not in (select id from emp) then
+signal sqlstate '45000' set message_text = 'Employee not found';
+end if;
+if psalary < 500 then 
+signal sqlstate '45000' set message_text = 'Salary Less Than 500 not allowed';
+end if;
+end $$
+delimiter ;
+
+call checkData(1,200);
+call checkData(5,5000);
+
+/*
+RESIGNAL is used inside an exception/condition handler to re-throw the same error (optionally with a modified message).
+
+Think of it as:
+
+“Catch the error → do something → throw it again”
+*/
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS demo_resignal$$
+
+CREATE PROCEDURE demo_resignal(IN p_salary DECIMAL(10,2))
+BEGIN
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    BEGIN
+        -- log / cleanup / debug here
+        RESIGNAL
+        SET MESSAGE_TEXT = 'Business rule violation occurred';
+    END;
+
+    IF p_salary < 500 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Salary too low';
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+CALL demo_resignal(300);
+
+
+-- declare handler -- exit or continue
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(50) NOT NULL
+);
+
+DELIMITER //
+
+CREATE PROCEDURE insert_user(
+	IN p_username VARCHAR(50), 
+    IN p_email VARCHAR(50)
+)
+BEGIN
+  -- SQLSTATE for unique constraint violation
+  DECLARE EXIT HANDLER FOR SQLSTATE '23000'
+  BEGIN
+    -- Handler actions when a duplicate username is detected
+    SELECT 'Error: Duplicate username. Please choose a different username.' AS Message;
+  END;
+
+  -- Attempt to insert the user into the table
+  INSERT INTO users (username, email) VALUES (p_username, p_email);
+
+  -- If the insertion was successful, display a success message
+  SELECT 'User inserted successfully' AS Message;
+
+END //
+
+DELIMITER ;
+
+CALL insert_user('jane','jane@example.com');
+select * from user;
+CALL insert_user('jane','jane@example.com');
+
+/*
+DECLARE CONDITION is used to name an error condition (SQLSTATE or MySQL error code) so you can refer to it in HANDLERs.
+
+It does not raise an error
+It only defines a condition name
+
+DECLARE condition_name CONDITION FOR condition_value;
+
+Where condition_value can be:
+a SQLSTATE value ('45000', '23000', etc.)
+a MySQL error number (1062, 1048, etc.)
+*/
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS salary_check$$
+
+CREATE PROCEDURE salary_check(IN p_salary DECIMAL(10,2))
+BEGIN
+    DECLARE low_salary CONDITION FOR SQLSTATE '45000';
+
+    IF p_salary < 500 THEN
+        SIGNAL low_salary
+        SET MESSAGE_TEXT = 'Salary less than 500 not allowed';
+    END IF;
+END$$
+
+DELIMITER ;
+
+CALL salary_check(300);
+
+
+
+

@@ -3530,3 +3530,314 @@ Using `ROWS` here would be **wrong** if dates repeat.
 > **Use `RANGE` when your window is defined by *values*; use `ROWS` when it’s defined by *positions*.**
 
 */
+
+
+/*
+searched case and simple case
+
+CREATE TABLE EMPLOYEE (
+  empId INTEGER PRIMARY KEY,
+  fname TEXT NOT NULL,
+  lname TEXT NOT NULL,
+  dept TEXT NOT NULL
+);
+
+INSERT INTO EMPLOYEE VALUES (0001, 'Clark','Blad', 'Sales');
+INSERT INTO EMPLOYEE VALUES (0002, 'Dave','Roast', 'Accounting');
+INSERT INTO EMPLOYEE VALUES (0003, 'Ava','Young', 'Marketing');
+INSERT INTO EMPLOYEE VALUES (0004, 'Raj','Young', 'Sales');
+INSERT INTO EMPLOYEE VALUES (0005, 'Suman','Christian', 'Accounting');
+INSERT INTO EMPLOYEE VALUES (0006, 'Divya','Decosta', 'Marketing');
+
+-- SELECT * FROM EMPLOYEE;
+
+-- select * from EMPLOYEE order by (empId = 0002) desc;
+-- select * from EMPLOYEE order by field(dept,'Accounting','Sales','Marketing');
+-- select * from EMPLOYEE order by 
+-- case dept 
+--   when "Sales" then 1
+--   when "Marketing" then 2
+--   when "Accounting" then 3 
+--   else 999
+-- end;
+-- select * from EMPLOYEE order by 
+-- case  
+--   when dept = "Sales" then 1
+--   when dept = "Marketing" then 2
+--   when dept = "Accounting" then 3 
+--   else 999
+-- end;
+-- select * from EMPLOYEE order by rand() limit 2;
+-- select fname, lname from EMPLOYEE order by fname asc;
+-- select fname, lname from EMPLOYEE order by lname asc, fname asc;
+-- select fname, lname from EMPLOYEE order by lname asc, fname desc;
+*/
+
+
+use classicmodels;
+delimiter $$
+-- create if not exists procedure  GetCustomersAddress() 
+create procedure  GetCustomersAddress() 
+begin
+select customerName, city, state, postalCode, country
+from customers order by customerName;
+end $$
+delimiter ;
+
+call GetCustomersAddress();
+
+drop procedure if exists GetCustomersAddress;
+
+set @total = 0;
+select count(*) into @total from customers;
+select @total;
+
+show procedure status;
+show procedure status where db = 'classicmodels';
+SHOW PROCEDURE STATUS LIKE '%Order%'
+
+
+delimiter $$
+create procedure GetOrderDetails() 
+begin
+select * from orderDetails;
+end $$
+delimiter ;
+call GetOrderDetails;
+show create procedure GetOrderDetails;
+alter procedure GetOrderDetails comment "OrderDetails";
+show create procedure GetOrderDetails;
+
+
+delimiter $$
+create procedure GetUSAOffice(in countryName varchar(20)) 
+begin
+select * from offices where country in (countryName);
+end $$
+delimiter ;
+
+call GetUSAOffice("USA");
+call GetUSAOffice("France");
+
+delimiter $$
+create procedure GetOrderStatusCount(in OrderStatus varchar(20), out totalCount int) 
+begin
+select count(*) into totalCount from orders where status like OrderStatus;
+end $$
+delimiter ;
+
+call GetOrderStatusCount("shipped",@totalCount);
+select @totalCount;
+
+delimiter $$
+create procedure CountInc(inout counter int, in inc int) 
+begin
+set counter = counter + inc;
+end $$
+delimiter ;
+
+set @counter = 0;
+call CountInc(@counter,5);
+call CountInc(@counter,5);
+call CountInc(@counter,5);
+select @counter;
+
+-- difference between inout and out
+-- delimiter $$
+-- create procedure CountInc1(out counter int, in inc int) 
+-- begin
+-- set counter = counter + inc;
+-- end $$
+-- delimiter ;
+-- set @counter = 0;
+-- call CountInc1(@counter,5);
+-- call CountInc1(@counter,5);
+-- call CountInc1(@counter,5);
+-- select @counter;
+
+
+use classicmodels;
+
+drop procedure if exists GetCustomerLevel;
+
+delimiter $$
+create procedure GetCustomerLevel(in pcustomerNumber int, out pcustomerLevel varchar(20))
+begin
+declare credit decimal(10,2);
+select creditLimit into credit from Customers where customerNumber = pcustomerNumber;
+if credit > 50000 then 
+ set pcustomerLevel = 'Platinum';
+end if;
+end $$
+delimiter ;
+
+call GetCustomerLevel(112,@level);
+select @level;
+
+drop procedure if exists GetCustomerLevel;
+
+delimiter $$
+create procedure GetCustomerLevel(in pcustomerNumber int, out pcustomerLevel varchar(20))
+begin
+declare credit decimal(10,2);
+select creditLimit into credit from Customers where customerNumber = pcustomerNumber;
+if credit > 50000 then 
+set pcustomerLevel = 'Platinum';
+else
+set pcustomerLevel = 'Not Platinum';
+end if;
+end $$
+delimiter ;
+
+call GetCustomerLevel(103,@level);
+select @level;
+
+drop procedure if exists GetCustomerLevel;
+delimiter $$
+create procedure GetCustomerLevel(in pcustomerNumber int, out pcustomerLevel varchar(20))
+begin
+declare credit decimal(10,2) default 0;
+select creditLimit into credit from Customers where customerNumber = pcustomerNumber;
+if credit > 50000 then 
+set pcustomerLevel = 'Platinum';
+elseif credit <=50000 and credit >= 10000 then 
+set pcustomerLevel = 'Gold';
+else 
+set pcustomerLevel = 'Silver';
+end if;
+end $$
+delimiter ;
+
+call GetCustomerLevel(123,@level);
+select @level;
+
+drop procedure if exists GetCustomerShipping;
+
+delimiter $$
+create procedure GetCustomerShipping(in pcustomerNumber int, out pshipping varchar(30))
+begin
+declare customerCountry varchar(30);
+select country into customerCountry from Customers where customerNumber = pcustomerNumber;
+case customerCountry
+when 'USA' then set pshipping = '2-day Shipping';
+when 'France' then set pshipping = '3-day Shipping';
+else set pshipping = '10-day Shipping';
+end case;
+end $$
+delimiter ;
+
+call GetCustomerShipping(114,@shipping);
+select @shipping;
+
+/*
+CASE case_value
+    WHEN when_value1 THEN ...
+    WHEN when_value2 THEN ...
+    ELSE 
+        BEGIN
+        END;
+END CASE;
+*/
+
+DELIMITER $$ 
+CREATE PROCEDURE GetDeliveryStatus(IN pOrderNumber INT, OUT pDeliveryStatus VARCHAR(100)) 
+BEGIN 
+DECLARE waitingDay INT DEFAULT 0;
+SELECT DATEDIFF(shippedDate, requiredDate) INTO waitingDay FROM orders WHERE orderNumber = pOrderNumber; 
+CASE 
+	WHEN waitingDay < 0 THEN 
+		SET pDeliveryStatus = 'Early Delivery';
+    WHEN waitingDay = 0 THEN 
+		SET pDeliveryStatus = 'On Time';
+	WHEN waitingDay >= 1 AND waitingDay < 5 THEN 
+		SET pDeliveryStatus = 'Late';
+	WHEN waitingDay >= 5 THEN 
+		SET pDeliveryStatus = 'Very Late';
+	ELSE 
+		SET pDeliveryStatus = 'No Information';
+END CASE;
+END$$ 
+DELIMITER ;
+
+call GetDeliveryStatus(10100,@status);
+select @status;
+
+
+use classicmodels;
+CREATE TABLE calendars (
+    date DATE PRIMARY KEY,
+    month INT NOT NULL,
+    quarter INT NOT NULL,
+    year INT NOT NULL
+);
+drop procedure if exists fillDates;
+delimiter $$
+create procedure fillDates(in startDate date, in endDate date)
+begin 
+declare curDate date;
+set curDate = date_sub(startDate, interval 1 day);
+dateFiller: loop
+set curDate = date_add(curDate, interval 1 day);
+if curDate > endDate then
+	leave dateFiller;
+end if;
+insert into calendars(date, month, quarter, year) value (curDate,month(curDate),quarter(curDate),year(curDate));
+end loop;
+end $$
+delimiter ;
+
+CALL fillDates('2024-01-01','2024-12-31');
+
+select * from calendars;
+
+drop procedure if exists fillDates;
+DROP TABLE IF EXISTS calendars;
+CREATE TABLE calendars(
+    date DATE PRIMARY KEY,
+    month INT NOT NULL,
+    quarter INT NOT NULL,
+    year INT NOT NULL
+);
+
+drop procedure if exists fillDates;
+delimiter $$
+create procedure fillDates(in startDate date, in days int)
+begin
+declare curDate date default startDate;
+declare counter int default 0;
+filldates: while counter <= days do
+insert into calendars(date, month,quarter,year) values(curDate,month(curDate),quarter(curDate),year(curDate));
+set curDate = date_add(curDate, interval 1 day);
+set counter = counter +1;
+end while;
+end $$
+delimiter ;
+
+CALL fillDates('2024-01-01',365);
+
+select * from calendars;
+
+-- remember repeat until the condition becomes true one's true then stop
+
+drop procedure if exists numberConcat;
+delimiter $$
+create procedure numberConcat()
+begin
+declare counter int default 0;
+declare numbers varchar(100) default '';
+loopers: repeat
+set counter = counter + 1;
+if(counter = 5) then
+iterate loopers;
+end if;
+set numbers = concat(numbers,', ',counter);
+until counter > 9
+end repeat;
+select numbers;
+end $$
+delimiter ;
+
+call numberConcat();
+
+
+

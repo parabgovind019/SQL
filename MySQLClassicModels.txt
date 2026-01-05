@@ -4406,3 +4406,135 @@ drop prepare ins_data;
 
 
 
+
+/*
+MySQL uses indexes to rapidly locate rows with specific column values. Without an index, MySQL must scan the entire table to find the relevant rows. The larger the table, the slower the search becomes.
+
+
+An index is a data structure such as a B-Tree that improves the speed of data retrieval on a table at the cost of additional writes and storage to maintain it.
+
+The query optimizer may use indexes to quickly locate data without having to scan every row in a table for a given query.
+
+When you create a table with a primary key or unique key, MySQL automatically creates a special index named PRIMARY. This index is called the clustered index.
+
+The PRIMARY index is special because the index itself is stored together with the data in the same table. The clustered index enforces the order of rows in the table.
+
+Other indexes other than the PRIMARY index are called secondary indexes or non-clustered indexes.
+
+
+CREATE TABLE t(
+   c1 INT PRIMARY KEY,
+   c2 INT NOT NULL,
+   c3 INT NOT NULL,
+   c4 VARCHAR(10),
+   INDEX (c2,c3) 
+);
+
+or
+
+CREATE INDEX index_name 
+ON table_name (column_list)
+*/
+
+
+
+SELECT employeeNumber, lastName, firstName
+FROM employees
+WHERE jobTitle = 'Sales Rep';
+
+CREATE INDEX jobTitle  ON employees(jobTitle);
+
+EXPLAIN SELECT employeeNumber, lastName, firstName
+FROM employees
+WHERE jobTitle = 'Sales Rep';
+
+
+SHOW INDEXES FROM employees;
+
+/*
+DROP INDEX index_name 
+ON table_name
+[algorithm_option | lock_option];
+*/
+
+-- DROP INDEX `PRIMARY` ON t;
+
+
+-- SHOW INDEXES FROM table_name;
+-- SHOW INDEXES FROM database_name.table_name;
+
+
+-- CREATE UNIQUE INDEX index_name ON table_name(index_column_1,index_column_2,...);
+
+-- prefix index
+-- CREATE INDEX idx_productname ON products(productName(20));
+
+-- invisible index
+-- ALTER TABLE table_name ALTER INDEX index_name [VISIBLE | INVISIBLE];
+
+-- descending index
+/*
+
+you can do any combinations
+
+DROP TABLE t;
+
+CREATE TABLE t (
+    a INT,
+    b INT,
+    INDEX a_asc_b_asc (a ASC , b ASC),
+    INDEX a_asc_b_desc (a ASC , b DESC),
+    INDEX a_desc_b_asc (a DESC , b ASC),
+    INDEX a_desc_b_desc (a DESC , b DESC)
+);
+*/
+
+-- composite index max col allowed 16 in mysql
+-- CREATE INDEX index_name ON table_name(c2,c3,c4);
+
+/*
+A cluster index is the table itself, which enforces the order of the rows in the table.
+An InnoDB table always has a clustered index.
+*/
+
+
+/*
+Index cardinality measures the uniqueness of values in a specific index column.
+MySQL uses index cardinality to optimize database performance and query efficiency.
+*/
+
+/*
+Use a functional index to optimize queries by indexing the computed values of specific columns, making it faster to retrieve data.
+
+CREATE INDEX index_name ON table_name ((fn));
+
+
+CREATE INDEX idx_year  ON orders((YEAR(orderDate)));
+*/
+
+
+/*
+the index hints that you can use when the query optimizer doesn’t choose the most efficient index for your specific query, or when you want to test with different index options to improve query performance.
+
+
+Use the MySQL USE INDEX hint to instruct the query optimizer to use the only list of specified indexes.
+
+
+SELECT select_list
+FROM table_name USE INDEX(index_list)
+WHERE condition;
+
+
+the FORCE INDEX hint to force the query optimizer to use specified indexes to select data from a table.
+
+SELECT * 
+FROM table_name 
+FORCE INDEX (index_list)
+WHERE condition;
+
+
+USE INDEX (Recommendation): This hint acts as a suggestion to the optimizer, recommending that it consider using one of the specified indexes. The optimizer will still perform its cost analysis and may ultimately decide that a full table scan or a different index would be more efficient, especially if it calculates a table scan to be faster.
+
+
+FORCE INDEX (Command): This hint is a much stronger command. It forces the optimizer to use the specified index, even if the optimizer's internal calculations suggest that a table scan or another index might be faster. A table scan will be used only as a last resort, if there is no other way to use the specified index to find the required rows in the table. 
+*/

@@ -1,0 +1,361 @@
+https://www.hackerrank.com/challenges/revising-aggregations-the-count-function/problem?isFullScreen=true
+
+select count(name) 
+from city 
+where population > 100000;
+
+https://www.hackerrank.com/challenges/revising-aggregations-the-average-function/problem?isFullScreen=true
+
+select avg(population) 
+from city 
+where district in ('california');
+
+https://www.hackerrank.com/challenges/japan-population/problem?isFullScreen=true
+
+select sum(population) 
+from city 
+where countrycode = 'jpn';
+
+https://www.hackerrank.com/challenges/average-population/problem?isFullScreen=true
+
+select round(avg(population)) 
+from city;
+
+https://www.hackerrank.com/challenges/revising-aggregations-sum/problem?isFullScreen=true
+
+select sum(population) 
+from city 
+where district = 'california';
+
+https://www.hackerrank.com/challenges/population-density-difference/problem?isFullScreen=true
+
+select max(population) - min(population) 
+from city;
+
+https://www.hackerrank.com/challenges/the-blunder/problem?isFullScreen=true
+
+select ceil((avg(salary))-(avg(replace(salary,'0','')))) 
+from employees;
+
+https://www.hackerrank.com/challenges/weather-observation-station-2/problem?isFullScreen=true
+
+select round(sum(lat_n),2) as lat, round(sum(long_w),2) as lon 
+from station
+
+https://www.hackerrank.com/challenges/weather-observation-station-13/problem?isFullScreen=true
+
+select truncate(sum(lat_n),4) 
+from station 
+where lat_n > 38.7880 and lat_n < 137.2345; 
+
+https://www.hackerrank.com/challenges/weather-observation-station-14/problem?isFullScreen=true
+
+select truncate(max(lat_n),4) 
+from station 
+where lat_n in (select lat_n from station where lat_n < 137.2345);
+
+https://www.hackerrank.com/challenges/weather-observation-station-15/problem?isFullScreen=true
+
+select round(long_w,4)  
+from station 
+where lat_n in (select max(lat_n) from station where lat_n < 137.2345);
+
+https://www.hackerrank.com/challenges/weather-observation-station-16/problem?isFullScreen=true
+
+select round(min(lat_n),4) 
+from station 
+where lat_n > 38.7780;
+
+https://www.hackerrank.com/challenges/weather-observation-station-17/problem?isFullScreen=true
+
+select round(long_w,4) 
+from station 
+where lat_n in (select min(lat_n) from station where lat_n > 38.7780);
+
+https://www.hackerrank.com/challenges/asian-population/problem?isFullScreen=true
+
+select sum(c.population) 
+from city c inner join country c1 on c.countrycode = c1.code 
+and c1.continent in ('asia');
+
+https://www.hackerrank.com/challenges/african-cities/problem?isFullScreen=true
+
+select c.name 
+from city c inner join country c1 on c.countrycode = c1.code
+and c1.continent = 'africa';
+
+https://www.hackerrank.com/challenges/average-population-of-each-continent/problem?isFullScreen=true
+
+select c1.continent, floor(avg(c.population)) 
+from city c inner join country c1 on c.countrycode = c1.code
+group by c1.continent;
+
+https://www.hackerrank.com/challenges/earnings-of-employees/problem?isFullScreen=true
+
+select salary*months as max_sals , count(*) from employee group by max_sals order by max_sals desc limit 1; 
+
+https://www.hackerrank.com/challenges/draw-the-triangle-1/problem?isFullScreen=true
+
+delimiter $$
+create procedure if not exists draw(in num int)
+begin 
+declare n int default num;
+pattern: while n > 0 do 
+    select repeat('* ',n);
+    set n = n-1;
+end while;
+end $$ 
+delimiter ;
+
+call draw(20);
+
+https://www.hackerrank.com/challenges/draw-the-triangle-2/problem?isFullScreen=true
+
+delimiter $$
+create procedure if not exists draw(in num int)
+begin 
+declare n int default 1;
+pattern: while n <= num do 
+    select repeat('* ',n);
+    set n = n+1;
+end while;
+end $$
+delimiter ;
+
+call draw(20);
+
+https://www.hackerrank.com/challenges/weather-observation-station-18/problem?isFullScreen=true
+
+select round(abs(min(lat_n)-max(lat_n)) + abs(min(long_w)-max(long_w)),4) 
+from station;
+
+https://www.hackerrank.com/challenges/weather-observation-station-19/problem?isFullScreen=true
+
+select round(sqrt(power(max(lat_n) - min(lat_n),2) + power(max(long_w)- min(long_w),2)), 4) 
+from station;
+
+https://www.hackerrank.com/challenges/print-prime-numbers/problem?isFullScreen=true
+
+delimiter $$
+create procedure if not exists prime(out primeList text)
+begin 
+declare n int default 2;
+declare m int default 2;
+loop1: while n <= 1000 do 
+    loop2: while m <= sqrt(n) do 
+        if n % m = 0 then 
+            set n = n+1;
+            set m = 2;
+            iterate loop1;
+        end if;
+        set m = m+1;
+    end while;
+    set primeList = concat_ws('&',primeList,n);
+    set m = 2;
+    set n = n+1;
+end while;
+end $$
+delimiter ;
+
+call prime(@list);
+select @list;
+
+https://www.hackerrank.com/challenges/binary-search-tree-1/problem?isFullScreen=true
+
+select n, 
+case when p is null then "Root"
+when n not in (select p from bst where p is not null) then "Leaf" 
+else "Inner" 
+end 
+from bst 
+order by n;
+
+https://www.hackerrank.com/challenges/the-report/problem?isFullScreen=true
+
+select if(grade < 8 ,null,name), grade, marks 
+from students inner join grades on marks between min_mark and max_mark 
+order by grade desc, name asc, marks asc;
+
+https://www.hackerrank.com/test/dq598o79cei/questions/g0ktir3f1c7
+
+with cte as 
+(select s1.roll_number, s1.name, if(f1.gender = 'M' and f1.salary > 15000,'Y','N') as male, if(f1.gender = 'F' and f1.salary > 20000,'Y','N') as female
+from student_information s1 inner join  faculty_information f1 
+on s1.advisor = f1.employee_id) 
+select concat(roll_number, ' ', name) from cte where male = 'Y' or female ='Y';
+
+select roll_number, name from student_information where advisor in (select case when gender = 'M' and salary > 15000 then employee_id 
+when gender = 'F' and salary > 20000 then employee_id 
+else 0
+end 
+from faculty_information)
+
+https://www.hackerrank.com/test/dq598o79cei/questions/fmh3k5pk111
+
+with cte as 
+(select s1.roll_number, s1.name, sum(e1.subject_one+e1.subject_two+e1.subject_three) as total from student_information s1 inner join examination_marks e1 on s1.roll_number = e1.roll_number group by s1.roll_number)
+select concat(roll_number,' ',name) from cte where total < 100;
+
+https://www.hackerrank.com/test/fp38nfei6da/questions/3em5dg1lmt3
+
+with cte as 
+(select user_account_id, customer_id, count(*) as counts 
+from contact
+group by user_account_id, customer_id 
+having count(*) > 1)
+
+select 
+u.id, u.first_name, u.last_name, 
+c.id, c.customer_name, cte.counts from cte inner join customer c on cte.customer_id = c.id inner join user_account u on u.id = cte.user_account_id 
+order by u.id;
+
+https://www.hackerrank.com/test/fp38nfei6da/questions/61djo6o7qkr
+
+with cte as (select id, invoice_id, product_id, round(sum(quantity*price),2) as total from invoice_item group by id, invoice_id, product_id)
+select ci.city_name, p.product_name, cte.total from city ci inner join customer cu on ci.id = cu.city_id inner join invoice i on i.customer_id = cu.id inner join invoice_item ii on i.id = ii.invoice_id inner join product p on ii.product_id = p.id inner join cte on cte.id = ii.id 
+order by total desc, ci.city_name, p.product_name;
+
+https://www.hackerrank.com/test/fp38nfei6da/questions/352hmfein9h
+
+select sku, product_name 
+from product 
+where id not in (select product_id from invoice_item) order by sku;
+
+https://www.hackerrank.com/test/dq598o79cei/questions/9c1fnhmrt93
+
+SELECT p1.stock_code from price_today p1 inner join price_tomorrow p2 on p1.stock_code = p2.stock_code and p1.price < p2.price order by p1.stock_code;
+
+https://www.hackerrank.com/challenges/the-company/problem?isFullScreen=true
+
+select distinct c.company_code, c.founder, count(distinct lm.lead_manager_code),count(distinct sm.senior_manager_code),count(distinct m.manager_code),count(distinct e.employee_code) 
+from employee e inner join company c on e.company_code = c.company_code inner join lead_manager lm on e.lead_manager_code = lm.lead_manager_code inner join senior_manager sm on e.senior_manager_code = sm.senior_manager_code inner join manager m on e.manager_code = m.manager_code 
+group by c.company_code, c.founder;
+
+https://www.hackerrank.com/challenges/weather-observation-station-20/problem?isFullScreen=true
+
+with cte as (select lat_n, row_number() over(order by lat_n) as rownum from station)
+select 
+case when count(*) % 2 != 0 then (select round(lat_n,4) from cte where rownum = ceil(count(*)/2)) 
+else round(((select lat_n from cte where rownum = ceil(count(*)/2)) + (select lat_n from cte where rownum = ceil((count(*)/2))+1)/2),4) 
+end 
+from station;
+
+https://www.hackerrank.com/challenges/full-score/problem?isFullScreen=true
+
+SELECT
+    h.hacker_id,
+    h.name
+FROM Submissions s
+JOIN Challenges c
+    ON s.challenge_id = c.challenge_id
+JOIN Difficulty d
+    ON c.difficulty_level = d.difficulty_level
+JOIN Hackers h
+    ON s.hacker_id = h.hacker_id
+WHERE s.score = d.score
+GROUP BY h.hacker_id, h.name
+HAVING COUNT(DISTINCT s.challenge_id) > 1
+ORDER BY COUNT(DISTINCT s.challenge_id) desc, h.hacker_id;
+
+https://www.hackerrank.com/challenges/harry-potter-and-wands/problem?isFullScreen=true
+
+select w.id, wp.age, w.coins_needed, w.power 
+from wands w inner join wands_property wp on w.code = wp.code 
+where wp.is_evil = 0 
+and w.coins_needed in (select min(wands.coins_needed) from wands inner join wands_property on wands.code = wands_property.code where wands_property.is_evil = 0 and w.power = wands.power and wp.age = wands_property.age)
+order by w.power desc, wp.age desc;
+
+https://www.hackerrank.com/challenges/placements/problem?isFullScreen=true
+
+WITH all_record AS (
+    SELECT 
+        s.ID,
+        s.Name,
+        p.Salary AS his_sal,
+        f.Friend_ID,
+        pf.Salary AS frd_sal
+    FROM Students s
+    JOIN Friends f 
+        ON s.ID = f.ID
+    JOIN Packages p 
+        ON s.ID = p.ID
+    JOIN Packages pf 
+        ON f.Friend_ID = pf.ID
+)
+SELECT Name
+FROM all_record
+WHERE his_sal < frd_sal
+ORDER BY frd_sal;
+
+https://www.hackerrank.com/challenges/symmetric-pairs/problem?isFullScreen=true
+
+select f1.x as x1, f1.y as y1 from functions f1 inner join functions f2 on f1.x = f2.y and f2.x = f1.y 
+where f1.x <= f1.y 
+group by f1.x, f1.y 
+having count(*) > 1 or f1.x < f1.y
+order by f1.x;
+
+https://www.hackerrank.com/challenges/sql-projects/problem?isFullScreen=true
+
+with start_date_cte as 
+(select start_date, row_number() over(order by start_date) as rownum1 from projects where start_date not in (select end_date from projects) order by rownum1), 
+end_date_cte as 
+(select end_date, row_number() over(order by end_date) as rownum2 from projects where end_date not in (select start_date from projects) order by rownum2)
+select start_date, end_date 
+from start_date_cte inner join end_date_cte on rownum1 = rownum2 
+order by datediff(end_date, start_date), start_date;
+
+https://www.hackerrank.com/challenges/contest-leaderboard/problem?isFullScreen=true
+
+select hacker_id, name, sum(max_score) as score from 
+(select h.hacker_id, h.name, c.challenge_id, max(c.score) as max_score 
+from hackers h inner join submissions c on h.hacker_id = c.hacker_id 
+group by h.hacker_id, h.name, c.challenge_id) as dt
+group by hacker_id, name 
+having score > 0 
+order by score desc, hacker_id;
+
+https://www.hackerrank.com/challenges/challenges/problem?isFullScreen=true
+
+SELECT h.hacker_id, h.name, COUNT(c.challenge_id) AS total
+FROM hackers h
+JOIN challenges c ON h.hacker_id = c.hacker_id
+GROUP BY h.hacker_id, h.name
+HAVING total = (
+        SELECT MAX(cnt)
+        FROM (
+            SELECT COUNT(*) AS cnt
+            FROM challenges
+            GROUP BY hacker_id
+        ) m
+     )
+   OR total NOT IN (
+        SELECT cnt
+        FROM (
+            SELECT COUNT(*) AS cnt
+            FROM challenges
+            GROUP BY hacker_id
+        ) d
+        GROUP BY cnt
+        HAVING COUNT(*) > 1
+     )
+ORDER BY total DESC, h.hacker_id;
+
+https://www.hackerrank.com/test/gfs8eiej4rq/questions/el2559on3gf
+
+with cte as (select timestamp, emp_id, row_number() over(partition by emp_id order by timestamp) as rownums from attendance where dayofweek(timestamp) in (1,7)), 
+
+dt as (select c1.emp_id, c1.timestamp as start, c2.timestamp as end, timestampdiff(hour,c1.timestamp,c2.timestamp) as difference from cte c1 inner join cte c2 on c1.emp_id = c2.emp_id and c1.rownums = c2.rownums-1 where c1.rownums%2=1)
+
+select dt.emp_id, sum(dt.difference) as work_hours from dt group by dt.emp_id;
+
+https://www.hackerrank.com/test/gfs8eiej4rq/questions/6lnbhos81q1
+
+select algorithm, 
+round(sum(if(quarter(dt) =1 and year(dt) = 2020,t.volume,0)),6) as transactions_Q1, 
+round(sum(if(quarter(dt) =2 and year(dt) = 2020,t.volume,0)),6) as transactions_Q2, 
+round(sum(if(quarter(dt) =3 and year(dt) = 2020,t.volume,0)),6) as transactions_Q3, 
+round(sum(if(quarter(dt) =4 and year(dt) = 2020,t.volume,0)),6) as transactions_Q4 
+from coins c inner join transactions t on c.code = t.coin_code 
+group by algorithm 
+order by algorithm asc;

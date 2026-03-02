@@ -20,3 +20,72 @@ select concat("Parab"," ","Govind");
 select concat("Parab"," ","Govind") as 'Full Name';
 select 1 + 1;
 
+-----------------------------------------------------
+
+CREATE TABLE employees (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50),
+    department VARCHAR(50),
+    salary DECIMAL(10,2),
+    bonus DECIMAL(10,2),
+    joining_date DATE
+);
+
+CREATE TABLE orders (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    customer_name VARCHAR(50),
+    status VARCHAR(50),
+    order_amount DECIMAL(10,2)
+);
+
+INSERT INTO employees (name, department, salary, bonus, joining_date) VALUES
+('Amit', 'IT', 70000, 5000, '2022-01-10'),
+('Rahul', 'HR', 50000, 3000, '2021-05-15'),
+('Sneha', 'IT', 90000, 8000, '2020-03-20'),
+('Priya', 'Finance', 60000, NULL, '2023-02-01'),
+('Karan', 'HR', NULL, 2000, '2019-07-25');
+
+INSERT INTO orders (customer_name, status, order_amount) VALUES
+('Ravi', 'Pending', 1500),
+('Simran', 'Shipped', 3000),
+('Anil', 'Processing', 2000),
+('Meena', 'Delivered', 5000),
+('Raj', 'Pending', 1200);
+
+SELECT * FROM employees ORDER BY salary ASC;
+SELECT * FROM employees ORDER BY salary DESC
+;
+SELECT * FROM employees ORDER BY department ASC, salary DESC;
+
+SELECT * FROM orders
+ORDER BY 
+CASE status
+    WHEN 'Pending' THEN 1
+    WHEN 'Processing' THEN 2
+    WHEN 'Shipped' THEN 3
+    WHEN 'Delivered' THEN 4
+    ELSE 5
+END ASC;
+
+SELECT * FROM employees
+ORDER BY 
+CASE 
+    WHEN department = 'IT' THEN salary
+    ELSE joining_date
+END DESC;
+  
+SELECT * FROM employees ORDER BY department = 'IT' DESC;
+
+SELECT * FROM orders ORDER BY FIELD(status, 'Pending', 'Processing', 'Shipped', 'Delivered');
+
+SELECT * FROM employees ORDER BY salary IS NULL, salary ASC; -- is null return 1 for null and 0 for non null after that again asc makes non null to appear before nulls
+
+SELECT *, (salary + IFNULL(bonus,0)) AS total_income
+FROM employees ORDER BY total_income DESC;
+
+SELECT * FROM employees ORDER BY RAND();
+
+SELECT * FROM employees ORDER BY 2 DESC;
+
+---------------------------------------------
+

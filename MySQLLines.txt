@@ -89,3 +89,31 @@ SELECT * FROM employees ORDER BY 2 DESC;
 
 ---------------------------------------------
 
+
+-- create
+CREATE TABLE EMPLOYEE (
+  empId INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  dept TEXT,
+  work TEXT
+);
+
+INSERT INTO EMPLOYEE VALUES (0001, 'Clark', null, "This is about Socil Media Handling");
+INSERT INTO EMPLOYEE VALUES (0002, 'Dave', 'Accounting',"This is about company'saccounting");
+INSERT INTO EMPLOYEE VALUES (0003, 'Ava', null, "This is about Digital Marketing");
+
+select empId, name, dept from EMPLOYEE;
+select empId, name, coalesce(dept,"N/A") from EMPLOYEE;
+
+select empId, name, dept, work from EMPLOYEE;
+select empId, name, left(coalesce(dept,work),50),work from EMPLOYEE;
+
+select empId, name, (
+  case 
+    when dept is null then left(work,50)
+    else dept
+  end
+) as dept, work from EMPLOYEE;
+
+select empId, name, ifnull(dept,left(work,50)), work from EMPLOYEE;
+
